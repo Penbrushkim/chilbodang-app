@@ -611,9 +611,16 @@
     }
   }
 
+  function safeGet(key) {
+    try { return localStorage.getItem(key); } catch (e) { return null; }
+  }
+  function safeSet(key, val) {
+    try { localStorage.setItem(key, val); } catch (e) {}
+  }
+
   var state = {
-    theme: localStorage.getItem('chilbo_theme') || 'light',
-    colorVariant: localStorage.getItem('chilbo_colorVariant') || '1',
+    theme: safeGet('chilbo_theme') || 'light',
+    colorVariant: safeGet('chilbo_colorVariant') || '1',
     prices: Object.assign({}, initialPrices, loadJSON('chilbo_prices', {})),
     sheets: (function () {
       var saved = loadJSON('chilbo_sheets', null);
@@ -632,10 +639,10 @@
     })(),
     activeTab: 'prices',
     activeSheetId: 1,
-    standardRatio: localStorage.getItem('chilbo_standardRatio') || '1.17',
-    dropboxUrl: localStorage.getItem('chilbo_dropboxUrl') || '',
-    dropboxAuto: localStorage.getItem('chilbo_dropboxAuto') !== '0',
-    dropboxLastStamp: localStorage.getItem('chilbo_dropboxStamp') || '',
+    standardRatio: safeGet('chilbo_standardRatio') || '1.17',
+    dropboxUrl: safeGet('chilbo_dropboxUrl') || '',
+    dropboxAuto: safeGet('chilbo_dropboxAuto') !== '0',
+    dropboxLastStamp: safeGet('chilbo_dropboxStamp') || '',
     dropboxStatus: '',
     extraction: {
       input: '', margin: '30', pureGoldDeduction: '25', k18k14Deduction: '5',
@@ -645,9 +652,9 @@
 
   function persistPrices() { saveJSON('chilbo_prices', state.prices); }
   function persistSheets() { saveJSON('chilbo_sheets', state.sheets); }
-  function persistTheme() { localStorage.setItem('chilbo_theme', state.theme); }
-  function persistColorVariant() { localStorage.setItem('chilbo_colorVariant', state.colorVariant); }
-  function persistStandardRatio() { localStorage.setItem('chilbo_standardRatio', state.standardRatio); }
+  function persistTheme() { safeSet('chilbo_theme', state.theme); }
+  function persistColorVariant() { safeSet('chilbo_colorVariant', state.colorVariant); }
+  function persistStandardRatio() { safeSet('chilbo_standardRatio', state.standardRatio); }
 
   function getSheet(id) {
     var found = state.sheets.filter(function (s) { return s.id === id; })[0];
