@@ -633,6 +633,10 @@
     activeTab: 'prices',
     activeSheetId: 1,
     standardRatio: localStorage.getItem('chilbo_standardRatio') || '1.17',
+    dropboxUrl: localStorage.getItem('chilbo_dropboxUrl') || '',
+    dropboxAuto: localStorage.getItem('chilbo_dropboxAuto') !== '0',
+    dropboxLastStamp: localStorage.getItem('chilbo_dropboxStamp') || '',
+    dropboxStatus: '',
     extraction: {
       input: '', margin: '30', pureGoldDeduction: '25', k18k14Deduction: '5',
       k18Percent: '0.715', k14Percent: '0.545', extractedData: null, isExtracting: false
@@ -1081,16 +1085,110 @@
       alert('9개의 숫자를 입력해야 합니다. 현재 ' + allNumbers.length + '개가 감지되었습니다.\n(값: ' + normalized + ')');
       return;
     }
-    var stdK24 = allNumbers[0], stdK18 = allNumbers[1], stdK14 = allNumbers[2];
-    var cashK24 = allNumbers[3], cashK18 = allNumbers[4], cashK14 = allNumbers[5];
-    var purK24 = allNumbers[6], purK18 = allNumbers[7], purK14 = allNumbers[8];
-
-    state.prices.k24 = { standard: stdK24 * 1000, cash: cashK24 * 1000, purchase: purK24 * 1000 };
-    state.prices.k18 = { standard: stdK18 * 1000, cash: cashK18 * 1000, purchase: purK18 * 1000 };
-    state.prices.k14 = { standard: stdK14 * 1000, cash: cashK14 * 1000, purchase: purK14 * 1000 };
-    persistPrices();
+    setKGoldPrices(allNumbers);
     renderPricesTab();
     showToast('시세 정보를 성공적으로 반영했습니다.');
+  }
+
+  // 9개 숫자(정상 K24 K18 K14 / 현금 K24 K18 K14 / 매입 K24 K18 K14, 단위 천원)를 반영한다.
+  function setKGoldPrices(n) {
+    state.prices.k24 = { standard: n[0] * 1000, cash: n[3] * 1000, purchase: n[6] * 1000 };
+    state.prices.k18 = { standard: n[1] * 1000, cash: n[4] * 1000, purchase: n[7] * 1000 };
+    state.prices.k14 = { standard: n[2] * 1000, cash: n[5] * 1000, purchase: n[8] * 1000 };
+    persistPrices();
+  }
+
+  /* =========================================================
+     Dropbox 금시세 파일 불러오기
+     파일 형식: 맨 위 안내 2줄 뒤에, 최신 시세가 가장 먼저 나온다.
+       887 732 571 / 730 608 481 / 665 490 373
+       10월 3, 2026 오전 11:23
+  ========================================================= */
+  var PRICE_LINE_RE = /^\s*([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s*\/\s*([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s*\/\s*([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s*$/;
+
+  function parsePriceFile(text) {
+    var lines = String(text || '').split(/\r?\n/);
+    for (var i = 0; i < lines.length; i++) {
+      var m = lines[i].match(PRICE_LINE_RE);
+      if (!m) continue;
+      var nums = m.slice(1, 10).map(function (s) { return parseFloat(s.replace(/,/g, '')); });
+      if (nums.some(function (v) { return !isFinite(v) || v <= 0; })) continue;
+      var stamp = '';
+      for (var j = i + 1; j < lines.length; j++) {
+        if (lines[j].trim() === '') continue;
+        if (!PRICE_LINE_RE.test(lines[j])) stamp = lines[j].trim();
+        break;
+      }
+      return { numbers: nums, stamp: stamp };
+    }
+    return null;
+  }
+
+  // Dropbox 공유 링크는 www.dropbox.com 주소로 바로 읽으면 다른 웹페이지에서 막히므로,
+  // 파일 내용을 직접 내려주는 dl.dropboxusercontent.com 주소로 바꿔서 읽는다.
+  function normalizeDropboxUrl(raw) {
+    var s = String(raw || '').trim();
+    if (!s) return '';
+    try {
+      var u = new URL(s);
+      if (/(^|\.)dropbox\.com$/i.test(u.hostname)) u.hostname = 'dl.dropboxusercontent.com';
+      return u.toString();
+    } catch (e) { return ''; }
+  }
+
+  function setDropboxStatus(msg) {
+    state.dropboxStatus = msg;
+    var el = document.getElementById('dropboxStatus');
+    if (el) el.textContent = msg;
+  }
+
+  function applyPriceText(text, auto) {
+    var parsed = parsePriceFile(text);
+    if (!parsed) {
+      setDropboxStatus('파일에서 시세를 찾지 못했습니다. 링크가 시세 텍스트 파일을 가리키는지 확인해주세요.');
+      if (!auto) showToast('파일에서 시세를 찾지 못했습니다.');
+      return;
+    }
+    var key = parsed.numbers.join(' ') + '|' + parsed.stamp;
+    if (auto && key === state.dropboxLastStamp) {
+      setDropboxStatus('이미 반영된 최신 시세입니다 (' + (parsed.stamp || '시각 없음') + ')');
+      return;
+    }
+    setKGoldPrices(parsed.numbers);
+    state.dropboxLastStamp = key;
+    try { localStorage.setItem('chilbo_dropboxStamp', key); } catch (e) {}
+    renderActiveTab();
+    setDropboxStatus('시세를 반영했습니다 (' + (parsed.stamp || '시각 없음') + ')');
+    showToast('시세를 반영했습니다: ' + (parsed.stamp || ''));
+  }
+
+  var lastDropboxCheck = 0;
+  function loadPricesFromDropbox(auto) {
+    var url = normalizeDropboxUrl(state.dropboxUrl);
+    if (!url) {
+      if (!auto) showToast('Dropbox 링크를 먼저 입력해주세요.');
+      return Promise.resolve();
+    }
+    lastDropboxCheck = Date.now();
+    setDropboxStatus('불러오는 중…');
+    return fetch(url, { cache: 'no-store' })
+      .then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.text();
+      })
+      .then(function (text) { applyPriceText(text, auto); })
+      .catch(function (e) {
+        setDropboxStatus('불러오지 못했습니다 (' + (e && e.message ? e.message : '네트워크 오류') + '). 링크를 확인하거나 아래 "파일에서 가져오기"를 사용해주세요.');
+        if (!auto) showToast('Dropbox에서 불러오지 못했습니다.');
+      });
+  }
+
+  function loadPricesFromPickedFile(file) {
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function () { applyPriceText(String(reader.result || ''), false); };
+    reader.onerror = function () { setDropboxStatus('파일을 읽지 못했습니다.'); };
+    reader.readAsText(file);
   }
 
   /* =========================================================
@@ -1594,6 +1692,24 @@
         '</div>' +
 
         '<div class="section-gap">' +
+          '<h2>Dropbox 금시세 불러오기</h2>' +
+          '<p class="hint" style="margin:0 0 10px;">Dropbox에 저장된 금시세 텍스트 파일의 공유 링크를 한 번 붙여넣어 두면, 가장 최근 시세(K24/K18/K14)를 자동으로 가져옵니다.</p>' +
+          '<div class="batch-row">' +
+            '<input type="text" id="dropboxUrlInput" placeholder="Dropbox 공유 링크를 붙여넣으세요" value="' + esc(state.dropboxUrl) + '" />' +
+            '<button class="btn btn-accent" id="dropboxLoadBtn">시세 불러오기</button>' +
+          '</div>' +
+          '<div class="checkbox-row" style="margin-top:10px;">' +
+            '<input type="checkbox" id="dropboxAutoChk"' + (state.dropboxAuto ? ' checked' : '') + ' />' +
+            '<label for="dropboxAutoChk">앱을 열 때 새 시세가 있으면 자동으로 반영</label>' +
+          '</div>' +
+          '<p class="hint" id="dropboxStatus" style="margin:8px 0 0;">' + esc(state.dropboxStatus) + '</p>' +
+          '<div class="batch-row" style="margin-top:10px;">' +
+            '<button class="btn btn-sm" id="priceFileBtn">파일에서 가져오기</button>' +
+            '<input type="file" id="priceFileInput" accept=".txt,text/plain" style="display:none;" />' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="section-gap">' +
           '<h2>정상가 비율</h2>' +
           '<p class="hint" style="margin:0 0 10px;">차감 후 정상가 = 차감 후 현금가 × 정상가 비율</p>' +
           '<div class="batch-row">' +
@@ -1633,6 +1749,23 @@
     document.getElementById('standardRatioInput').addEventListener('input', function (e) {
       state.standardRatio = e.target.value;
       persistStandardRatio();
+    });
+    document.getElementById('dropboxUrlInput').addEventListener('input', function (e) {
+      state.dropboxUrl = e.target.value.trim();
+      try { localStorage.setItem('chilbo_dropboxUrl', state.dropboxUrl); } catch (err) {}
+    });
+    document.getElementById('dropboxAutoChk').addEventListener('change', function (e) {
+      state.dropboxAuto = e.target.checked;
+      try { localStorage.setItem('chilbo_dropboxAuto', state.dropboxAuto ? '1' : '0'); } catch (err) {}
+    });
+    document.getElementById('dropboxLoadBtn').addEventListener('click', function () {
+      loadPricesFromDropbox(false);
+    });
+    var priceFileInput = document.getElementById('priceFileInput');
+    document.getElementById('priceFileBtn').addEventListener('click', function () { priceFileInput.click(); });
+    priceFileInput.addEventListener('change', function () {
+      loadPricesFromPickedFile(priceFileInput.files && priceFileInput.files[0]);
+      priceFileInput.value = '';
     });
     document.getElementById('backupCopyBtn').addEventListener('click', copyBackupCode);
     document.getElementById('backupRestoreBtn').addEventListener('click', function () {
@@ -2338,6 +2471,14 @@
   persistSheets();
   persistStandardRatio();
   persistTheme();
+
+  // Dropbox 시세 파일: 앱을 열 때, 그리고 홈 화면 앱으로 다시 돌아왔을 때(30초 이상 지났으면) 새 시세가 있는지 확인한다.
+  if (state.dropboxUrl && state.dropboxAuto) loadPricesFromDropbox(true);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible' && state.dropboxUrl && state.dropboxAuto && Date.now() - lastDropboxCheck > 30000) {
+      loadPricesFromDropbox(true);
+    }
+  });
 
   // 브라우저에 "이 사이트 저장소는 자동으로 지우지 말아달라"고 요청한다.
   // (지원하는 환경에서만 동작하고, 거절되거나 미지원이어도 앱에는 영향 없음)
