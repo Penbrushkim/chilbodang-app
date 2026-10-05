@@ -321,12 +321,12 @@
   /* ---------- gold summary bar ---------- */
   .gold-bar { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; }
   .gold-bar-item {
-    flex: none; min-width: 150px;
+    flex: none; min-width: 210px;
     background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px;
     box-shadow: var(--shadow);
   }
-  .gold-bar-item .g-type { font-family: var(--font-display); font-weight: 600; font-size: 13px; margin-bottom: 4px; display: block; }
-  .gold-bar-item .g-row { display: flex; justify-content: space-between; font-size: 11px; font-family: var(--font-mono); color: var(--muted); gap: 8px; }
+  .gold-bar-item .g-type { font-family: var(--font-display); font-weight: 600; font-size: 18.2px; margin-bottom: 4px; display: block; }
+  .gold-bar-item .g-row { display: flex; justify-content: space-between; font-size: 15.4px; font-family: var(--font-mono); color: var(--muted); gap: 8px; }
   .gold-bar-item .g-row span:last-child { color: var(--text); }
 
   /* ---------- final summary ---------- */
@@ -1545,7 +1545,7 @@
     html += row('매입합계', formulaOf(b.purchasePrice.parts, ' + '), b.purchasePrice.total, false);
     html += row('입금합계', formulaOf(b.depositPrice.parts, ' + '), b.depositPrice.total, false);
     html += row('현금가 | 잔금', d.cartTotals.cash.toLocaleString('ko-KR') + ' - ' + d.checkedTotalPurchaseAmount.toLocaleString('ko-KR') + ' - ' + d.checkedTotalDepositAmount.toLocaleString('ko-KR') + ' =', d.finalTotals.cash, true);
-    html += row('정상가 | 잔금', '현금가 잔금 ' + d.finalTotals.cash.toLocaleString('ko-KR') + ' × 정상가비율 ' + (Number(state.standardRatio) || 0).toLocaleString('ko-KR') + ' =', d.finalTotals.standard, true);
+    if (!shouldHideFinalStandard(d)) html += row('정상가 | 잔금', '현금가 잔금 ' + d.finalTotals.cash.toLocaleString('ko-KR') + ' × 정상가비율 ' + (Number(state.standardRatio) || 0).toLocaleString('ko-KR') + ' =', d.finalTotals.standard, true);
     html += '<div class="details-label">매입 중량(돈)</div><div class="details-value details-full"><span class="details-formula">' + esc(b.purchaseWeight.parts.length > 0 ? b.purchaseWeight.parts.join(' + ') : '0') + '</span></div>';
     el.innerHTML = html;
   }
@@ -1593,7 +1593,7 @@
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></svg>' +
             '<span>공유하기</span>' +
           '</button>' +
-          '<div class="head-meta"><div>' + todayString() + '</div><div>V4.1.0</div></div>' +
+          '<div class="head-meta"><div>' + todayString() + '</div><div>V4.1.1</div></div>' +
         '</div>' +
       '</div>' +
       '<div class="tabs-scroll"><div class="tabs" id="tabsRow"></div></div>' +
@@ -1917,7 +1917,7 @@
         '<div class="g-row"><span>매:</span><span id="bar_' + type + '_purchase">' + fmtWon(p[type].purchase) + '</span></div>' +
         '</div>';
     };
-    return '<div class="gold-bar">' + item('K24', 'k24') + item('K18', 'k18') + item('K14', 'k14') + item('백금', 'platinum') + '</div>';
+    return '<div class="gold-bar">' + item('K24', 'k24') + item('K18', 'k18') + item('K14', 'k14') + '</div>';
   }
 
   function contentOptionsHtml(selected, includeContentClass) {
