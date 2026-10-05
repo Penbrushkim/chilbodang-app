@@ -404,6 +404,11 @@
   .card-final { border-color: var(--accent-soft-border); background: var(--accent-soft); }
   .card-final .card-title-row h2 { color: var(--accent-strong); }
   .card-final .summary-total { border-top-color: var(--accent-soft-border); }
+  /* 최종 계산 글자 크기 20% 확대 */
+  .card-final .card-title-row h2 { font-size: 20.4px; }
+  .card-final .btn-sm { font-size: 14.4px; }
+  .card-final .summary-lines p { font-size: 15.6px; }
+  .card-final .summary-total p { font-size: 18px; }
   .card-purchase { border-color: var(--purchase-soft-border); background: var(--purchase-soft); }
   .card-purchase .card-title-row h2 { color: var(--purchase); }
   .card-deposit-section { border-color: var(--deposit-soft-border); background: var(--deposit-soft); }
@@ -606,7 +611,7 @@
       // 저장이 조용히 실패하면 사용자는 새로고침 후에야 값이 사라진 걸 알게 된다.
       if (!saveFailureNotified && typeof showToast === 'function') {
         saveFailureNotified = true;
-        showToast('이 기기에 저장하지 못했습니다. 새로고침하면 값이 사라질 수 있으니 "백업 코드 복사"로 따로 보관해주세요.');
+        showToast('이 기기에 저장하지 못했습니다. 새로고침하면 값이 사라질 수 있습니다.');
       }
     }
   }
@@ -1481,6 +1486,11 @@
     if (priceEl) priceEl.textContent = fmtWon(calc.totalPurchasePrice);
   }
 
+  // 선택 매입 합계가 선택 품목 합계(현금가)보다 크면 차감 후 정상가는 의미가 없으므로 표시하지 않는다.
+  function shouldHideFinalStandard(d) {
+    return d.checkedTotalPurchaseAmount > d.cartTotals.cash;
+  }
+
   function patchSheetTotals() {
     var sheet = activeSheet();
     var d = computeSheetDerived(sheet);
@@ -1492,7 +1502,11 @@
     setText('sum_deposit_checked', fmtWon(d.checkedTotalDepositAmount));
     var finalStdEl = document.getElementById('sum_final_standard');
     var finalCashEl = document.getElementById('sum_final_cash');
-    if (finalStdEl) { finalStdEl.textContent = fmtBalance(d.finalTotals.standard); finalStdEl.parentElement.classList.toggle('negative', d.finalTotals.standard < 0); }
+    if (finalStdEl) {
+      finalStdEl.textContent = fmtBalance(d.finalTotals.standard);
+      finalStdEl.parentElement.classList.toggle('negative', d.finalTotals.standard < 0);
+      finalStdEl.parentElement.style.display = shouldHideFinalStandard(d) ? 'none' : '';
+    }
     if (finalCashEl) { finalCashEl.textContent = fmtBalance(d.finalTotals.cash); finalCashEl.parentElement.classList.toggle('negative', d.finalTotals.cash < 0); }
 
     setText('purchase_total_checked', fmtWon(d.checkedTotalPurchaseAmount));
@@ -1723,18 +1737,6 @@
             '<input type="number" step="0.001" id="standardRatioInput" value="' + esc(state.standardRatio) + '" style="max-width:160px;" />' +
           '</div>' +
         '</div>' +
-
-        '<div class="section-gap">' +
-          '<h2>백업 / 복원</h2>' +
-          '<p class="hint" style="margin:0 0 10px;">이 기기의 저장 공간이 초기화되는 경우에 대비해, 아래 "백업 코드 복사"를 눌러 메모 앱 등에 붙여넣어 보관해두세요. 시세가 초기화되었을 때 그 코드를 아래 칸에 붙여넣고 "복원하기"를 누르면 그대로 되돌릴 수 있습니다.</p>' +
-          '<div class="batch-row">' +
-            '<button class="btn" id="backupCopyBtn">백업 코드 복사</button>' +
-          '</div>' +
-          '<div class="batch-row" style="margin-top:10px;">' +
-            '<input type="text" id="backupRestoreInput" placeholder="여기에 백업 코드를 붙여넣으세요" />' +
-            '<button class="btn btn-accent" id="backupRestoreBtn">복원하기</button>' +
-          '</div>' +
-        '</div>' +
       '</div>';
 
     Array.prototype.forEach.call(root.querySelectorAll('.raw-price-input'), function (input) {
@@ -1774,85 +1776,6 @@
       loadPricesFromPickedFile(priceFileInput.files && priceFileInput.files[0]);
       priceFileInput.value = '';
     });
-    document.getElementById('backupCopyBtn').addEventListener('click', copyBackupCode);
-    document.getElementById('backupRestoreBtn').addEventListener('click', function () {
-      var input = document.getElementById('backupRestoreInput');
-      restoreFromBackupCode(input.value);
-    });
-  }
-
-  /* =========================================================
-     백업 / 복원 — 서버 없이 이 기기 로컬 저장소만 쓰기 때문에,
-     혹시 이 기기의 저장 공간이 초기화되더라도 사용자가 직접
-     메모 앱 등 다른 곳에 보관해둔 코드로 복원할 수 있게 한다.
-  ========================================================= */
-  function buildBackupCode() {
-    var payload = {
-      v: 1,
-      savedAt: new Date().toISOString(),
-      prices: state.prices,
-      sheets: state.sheets,
-      standardRatio: state.standardRatio
-    };
-    return btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
-  }
-  function copyBackupCode() {
-    var code = buildBackupCode();
-    function done(ok) {
-      showToast(ok ? '백업 코드가 복사되었습니다. 메모 앱 등에 붙여넣어 보관해두세요.' : '복사에 실패했습니다. 아래 칸을 길게 눌러 직접 복사해주세요.');
-    }
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(code).then(function () { done(true); }, function () {
-        fallbackCopy(code, done);
-      });
-    } else {
-      fallbackCopy(code, done);
-    }
-  }
-  function fallbackCopy(text, done) {
-    try {
-      var ta = document.createElement('textarea');
-      ta.value = text;
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.focus();
-      ta.select();
-      var ok = document.execCommand('copy');
-      document.body.removeChild(ta);
-      done(ok);
-    } catch (e) { done(false); }
-  }
-  function restoreFromBackupCode(code) {
-    code = (code || '').trim();
-    if (!code) { showToast('붙여넣은 백업 코드가 없습니다.'); return; }
-    var payload;
-    try {
-      payload = JSON.parse(decodeURIComponent(escape(atob(code))));
-    } catch (e) {
-      showToast('백업 코드를 읽을 수 없습니다. 복사한 코드 전체를 붙여넣었는지 확인해주세요.');
-      return;
-    }
-    if (!payload || typeof payload !== 'object' || !payload.prices) {
-      showToast('올바른 백업 코드가 아닙니다.');
-      return;
-    }
-    showConfirmModal(
-      '백업 코드를 복원하면 현재 이 기기에 있는 시세/제품계산 내역이 백업 시점(' +
-      (payload.savedAt ? new Date(payload.savedAt).toLocaleString('ko-KR') : '알 수 없음') +
-      ')의 내용으로 덮어써집니다. 계속할까요?',
-      '복원하기',
-      function () {
-        state.prices = Object.assign({}, initialPrices, payload.prices);
-        if (Array.isArray(payload.sheets)) state.sheets = payload.sheets;
-        if (payload.standardRatio) state.standardRatio = payload.standardRatio;
-        persistPrices();
-        persistSheets();
-        persistStandardRatio();
-        renderActiveTab();
-        showToast('백업 내용을 복원했습니다.');
-      }
-    );
   }
 
   /* =========================================================
@@ -2175,9 +2098,15 @@
     '</div>';
   }
 
+  var lastCalcSheetId = null;
   function renderCalculatorTab() {
     var root = document.getElementById('captureRoot');
     var sheet = activeSheet();
+    // 체크박스 선택 등으로 화면을 다시 그릴 때 목록/페이지 스크롤이 맨 위로 튀지 않도록 위치를 기억해 둔다.
+    var prevList = document.getElementById('productList');
+    var keepView = !!prevList && lastCalcSheetId === state.activeSheetId;
+    var prevListScroll = keepView ? prevList.scrollTop : 0;
+    var prevPageY = keepView ? (window.pageYOffset || document.documentElement.scrollTop || 0) : 0;
     var d = computeSheetDerived(sheet);
 
     var productsHtml = sheet.products.map(function (p, i) { return productItemHtml(p, i, getProductItemPrices(p)); }).join('');
@@ -2197,7 +2126,7 @@
           '<p><span>(-) 선택 입금 합계</span><span id="sum_deposit_checked">- ' + fmtWon(d.checkedTotalDepositAmount) + '</span></p>' +
         '</div>' +
         '<div class="summary-total">' +
-          '<p class="' + (d.finalTotals.standard < 0 ? 'negative' : '') + '"><span>차감 후 정상가</span><span id="sum_final_standard">' + fmtBalance(d.finalTotals.standard) + '</span></p>' +
+          '<p id="row_final_standard" class="' + (d.finalTotals.standard < 0 ? 'negative' : '') + '"' + (shouldHideFinalStandard(d) ? ' style="display:none;"' : '') + '><span>차감 후 정상가</span><span id="sum_final_standard">' + fmtBalance(d.finalTotals.standard) + '</span></p>' +
           '<p class="' + (d.finalTotals.cash < 0 ? 'negative' : '') + '"><span>차감 후 현금가</span><span id="sum_final_cash">' + fmtBalance(d.finalTotals.cash) + '</span></p>' +
         '</div>' +
       '</div>' +
@@ -2255,6 +2184,13 @@
     wireCalculatorEvents();
     renderDetailsPanel(d);
     sheet.products.forEach(function (p) { setupDrawingCanvas(p.id, p.drawing); });
+
+    lastCalcSheetId = state.activeSheetId;
+    if (keepView) {
+      var newList = document.getElementById('productList');
+      if (newList) newList.scrollTop = prevListScroll;
+      window.scrollTo(0, prevPageY);
+    }
   }
 
   function wireCalculatorEvents() {
