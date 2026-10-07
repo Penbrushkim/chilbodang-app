@@ -1359,6 +1359,12 @@
 
     var finalCash = totalCash - totalPurchase - totalDeposit;
     var finalStandard = finalCash * (Number(state.standardRatio) || 0);
+    // 세트에 반영된 매입/입금 품목이 하나도 없으면 차감할 것이 없으므로
+    // 차감 후 금액은 세트 품목 합계와 같다(정상가는 비율 계산 없이 정상가 합계 그대로).
+    if (purchaseRows.length === 0 && depositRows.length === 0) {
+      finalStandard = totalStandard;
+      finalCash = totalCash;
+    }
 
     return {
       rows: rows, totalStandard: totalStandard, totalCash: totalCash,
