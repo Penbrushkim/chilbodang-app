@@ -2098,7 +2098,7 @@
         (c.depositRows.length > 0 ? depositLinesHtml + '<p><span>(-) 세트 입금 합계</span><span>- ' + fmtWon(c.totalDeposit) + '</span></p>' : '') +
       '</div>' +
       '<div class="summary-total">' +
-        '<p class="' + (c.finalStandard < 0 ? 'negative' : '') + '"><span>차감 후 정상가</span><span>' + fmtBalance(c.finalStandard) + '</span></p>' +
+        (c.totalPurchase > c.totalCash ? '' : '<p class="' + (c.finalStandard < 0 ? 'negative' : '') + '"><span>차감 후 정상가</span><span>' + fmtBalance(c.finalStandard) + '</span></p>') +
         '<p class="' + (c.finalCash < 0 ? 'negative' : '') + '"><span>차감 후 현금가</span><span>' + fmtBalance(c.finalCash) + '</span></p>' +
       '</div>' +
     '</div>';
