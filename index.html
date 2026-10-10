@@ -366,6 +366,14 @@
     width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--border-strong);
     display: flex; align-items: center; justify-content: center; flex: none; margin-top: 2px;
   }
+  .item-num.k24 { color: var(--purity-k24); border-color: var(--purity-k24); font-weight: 700; font-size: 12px; }
+  .item-num.k18 { color: var(--purity-k18); border-color: var(--purity-k18); font-weight: 700; font-size: 12px; }
+  .item-num.k14 { color: var(--purity-k14); border-color: var(--purity-k14); font-weight: 700; font-size: 12px; }
+  .category-select { width: 150px; padding: 5px 6px; font-size: 13px; }
+  .bundle-row-cat { font-size: 70%; font-weight: 700; margin-left: 8px; }
+  .bundle-row-cat.k24 { color: var(--purity-k24); }
+  .bundle-row-cat.k18 { color: var(--purity-k18); }
+  .bundle-row-cat.k14 { color: var(--purity-k14); }
   .product-info { flex: 0 1 auto; min-width: 0; }
   .p-row { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; }
   .p-row.faded { opacity: 0.45; }
@@ -582,6 +590,7 @@
   var uid = function () { return Date.now() + Math.floor(Math.random() * 1000); };
   var esc = function (s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;'); };
 
+  var PRODUCT_CATEGORIES = ['반지', '팔찌', '목걸이', '귀걸이', '발찌', '스톤', '기타'];
   var CONTENT_NAMES_FULL = { k24: 'K24 제품', k18: 'K18 제품', k14: 'K14 제품', stone: '스톤', handicraft: '수공', etc: '기타 품목' };
   var CONTENT_NAMES_SHORT = { k24: 'K24', k18: 'K18', k14: 'K14', dental: '치금', silver: '실버', platinum: '백금' };
   var CONTENT_NAMES_DAILY = { k24: 'K24', k18: 'K18', k14: 'K14', stone: '스톤', etc: '기타' };
@@ -1237,7 +1246,7 @@
 
     var newProduct = {
       id: uid(), content: content, labor: labor, weight: weight,
-      selection: 'original', quantity: 1, drawing: null,
+      selection: 'original', quantity: 1, drawing: null, category: '',
       k18FindingWeight: k18Weight, k18FindingIncluded: input.k18FindingChecked && k18Weight > 0
     };
     activeSheet().products.push(newProduct);
@@ -1264,6 +1273,14 @@
     });
     persistSheets();
     renderCalculatorTab();
+  }
+  function setProductCategory(id, value) {
+    var sheet = activeSheet();
+    var p = sheet.products.filter(function (x) { return x.id === id; })[0];
+    if (!p) return;
+    p.category = value;
+    persistSheets();
+    patchBundles();
   }
   function changeProductQty(id, newQty) {
     var qty = parseInt(newQty, 10);
@@ -1331,7 +1348,7 @@
       }
       totalStandard += standard;
       totalCash += cash;
-      rows.push({ missing: false, num: pIndex + 1, name: name, contentClass: contentClass, qty: qty, standard: standard, cash: cash });
+      rows.push({ missing: false, num: pIndex + 1, numClass: numColorClass(p.content), category: p.category || '', name: name, contentClass: contentClass, qty: qty, standard: standard, cash: cash });
     });
 
     var purchaseCalcs = computePurchaseCalculations(sheet);
@@ -1599,7 +1616,7 @@
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></svg>' +
             '<span>공유하기</span>' +
           '</button>' +
-          '<div class="head-meta"><div>' + todayString() + '</div><div>V4.1.2</div></div>' +
+          '<div class="head-meta"><div>' + todayString() + '</div><div>V4.1.3</div></div>' +
         '</div>' +
       '</div>' +
       '<div class="tabs-scroll"><div class="tabs" id="tabsRow"></div></div>' +
@@ -1980,6 +1997,16 @@
     document.getElementById('addProductBtn').addEventListener('click', addProduct);
   }
 
+  function numColorClass(content) {
+    return (content === 'k24' || content === 'k18' || content === 'k14') ? (' ' + content) : '';
+  }
+  function categorySelectHtml(p) {
+    return '<select class="category-select" data-category-for="' + p.id + '" aria-label="품목 종류">' +
+      '<option value=""' + (!p.category ? ' selected' : '') + '></option>' +
+      PRODUCT_CATEGORIES.map(function (n) { return '<option value="' + n + '"' + (p.category === n ? ' selected' : '') + '>' + n + '</option>'; }).join('') +
+      '</select>';
+  }
+
   function productItemHtml(p, index, itemPrices) {
     var qty = p.quantity || 1;
     var origSelected = p.selection === 'original';
@@ -2014,11 +2041,12 @@
     }
 
     return '<li class="product-item" draggable="true" data-drag-index="' + index + '" data-product-id="' + p.id + '">' +
-      '<div class="item-num">' + (index + 1) + '</div>' +
+      '<div class="item-num' + numColorClass(p.content) + '">' + (index + 1) + '</div>' +
       '<div class="product-info">' + origRow + convHtml + '</div>' +
       '<div class="product-item-controls">' +
         '<div class="draw-wrap">' +
           '<canvas class="draw-canvas" width="150" height="70" data-canvas-for="' + p.id + '"></canvas>' +
+          categorySelectHtml(p) +
         '</div>' +
         '<div class="draw-side">' +
           '<button type="button" class="btn-clear-canvas" data-canvas-clear="' + p.id + '">지우기</button>' +
@@ -2069,9 +2097,10 @@
       if (r.missing) return '<div class="bundle-row"><div class="bundle-row-body hint">(삭제된 제품)</div></div>';
       var nameClass = 'p-name' + (r.contentClass ? (' ' + r.contentClass) : '');
       return '<div class="bundle-row">' +
-        '<div class="item-num">' + r.num + '</div>' +
+        '<div class="item-num' + r.numClass + '">' + r.num + '</div>' +
         '<div class="bundle-row-body">' +
           '<span class="' + nameClass + '">' + esc(r.name) + '</span>' +
+          (r.category ? '<span class="bundle-row-cat' + (r.contentClass ? (' ' + r.contentClass) : '') + '">' + esc(r.category) + '</span>' : '') +
           (r.qty > 1 ? ('<span class="bundle-row-qty"> ×' + r.qty + '</span>') : '') +
           '<div class="bundle-row-price">정상가 ' + fmtWon(r.standard) + ' / 현금가 ' + fmtWon(r.cash) + '</div>' +
         '</div>' +
@@ -2238,6 +2267,9 @@
     });
     Array.prototype.forEach.call(root.querySelectorAll('[data-qty-input]'), function (el) {
       el.addEventListener('change', function () { changeProductQty(Number(el.dataset.qtyInput), el.value); });
+    });
+    Array.prototype.forEach.call(root.querySelectorAll('[data-category-for]'), function (el) {
+      el.addEventListener('change', function () { setProductCategory(Number(el.dataset.categoryFor), el.value); });
     });
     Array.prototype.forEach.call(root.querySelectorAll('[data-remove-product]'), function (el) {
       el.addEventListener('click', function () { removeProduct(Number(el.dataset.removeProduct)); });
