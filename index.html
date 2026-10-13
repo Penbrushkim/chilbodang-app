@@ -412,6 +412,11 @@
   .card-final { border-color: var(--accent-soft-border); background: var(--accent-soft); }
   .card-final .card-title-row h2 { color: var(--accent-strong); }
   .card-final .summary-total { border-top-color: var(--accent-soft-border); }
+  /* 입금 종류별 줄(작게, 들여쓰기) */
+  .card-final .summary-lines p.deposit-sub { font-size: 13px; padding-left: 14px; margin: 2px 0; }
+  /* 차감 후 정상가 / 현금가 구분 색 (마이너스일 때는 기존 빨간색 유지) */
+  .card-final .summary-total p.final-std:not(.negative) span { color: var(--details); }
+  .card-final .summary-total p.final-cash:not(.negative) span { color: var(--deposit); }
   /* 최종 계산 글자 크기 20% 확대 */
   .card-final .card-title-row h2 { font-size: 20.4px; }
   .card-final .btn-sm { font-size: 14.4px; }
@@ -592,6 +597,7 @@
 
   // 카드 입금: 현금가에서는 입금액의 85%만 차감하고, 정상가에서는 입금액 전액을 차감한다.
   var CARD_CASH_RATE = 0.85;
+  var DEPOSIT_TYPES = ['현금', '카드', '반품', '기타'];
   var PRODUCT_CATEGORIES = ['반지', '팔찌', '목걸이', '귀걸이', '발찌', '스톤', '기타'];
   var CONTENT_NAMES_FULL = { k24: 'K24 제품', k18: 'K18 제품', k14: 'K14 제품', stone: '스톤', handicraft: '수공', etc: '기타 품목' };
   var CONTENT_NAMES_SHORT = { k24: 'K24', k18: 'K18', k14: 'K14', dental: '치금', silver: '실버', platinum: '백금' };
@@ -762,6 +768,12 @@
     var checkedCardDepositAmount = deposits.filter(function (i) { return i.isChecked && i.type === '카드'; })
       .reduce(function (s, i) { return s + ((Number(i.amount) * 1000) || 0); }, 0);
     var checkedOtherDepositAmount = checkedTotalDepositAmount - checkedCardDepositAmount;
+    var depositByType = {};
+    DEPOSIT_TYPES.forEach(function (t) { depositByType[t] = 0; });
+    deposits.filter(function (i) { return i.isChecked; }).forEach(function (i) {
+      var key = DEPOSIT_TYPES.indexOf(i.type) >= 0 ? i.type : '기타';
+      depositByType[key] += ((Number(i.amount) * 1000) || 0);
+    });
     var cardCashEffect = Math.round(checkedCardDepositAmount * CARD_CASH_RATE);
     var ratioNum = Number(state.standardRatio) || 0;
     // 카드 외 항목(매입, 카드 외 입금)을 뺀 현금가 잔액
@@ -806,6 +818,7 @@
       totalPurchaseAmount: totalPurchaseAmount,
       checkedTotalDepositAmount: checkedTotalDepositAmount,
       checkedCardDepositAmount: checkedCardDepositAmount,
+      depositByType: depositByType,
       checkedOtherDepositAmount: checkedOtherDepositAmount,
       cardCashEffect: cardCashEffect,
       baseCashTotal: baseCashTotal,
@@ -1546,8 +1559,9 @@
     var setText = function (id, text) { var el = document.getElementById(id); if (el) el.textContent = text; };
     setText('sum_cart_standard', fmtWon(d.cartTotals.standard));
     setText('sum_cart_cash', fmtWon(d.cartTotals.cash));
-    setText('sum_purchase_checked', fmtWon(d.checkedTotalPurchaseAmount));
-    setText('sum_deposit_checked', fmtWon(d.checkedTotalDepositAmount));
+    setText('sum_purchase_checked', '- ' + fmtWon(d.checkedTotalPurchaseAmount));
+    setText('sum_deposit_checked', '- ' + fmtWon(d.checkedTotalDepositAmount));
+    DEPOSIT_TYPES.forEach(function (t) { setText('sum_deposit_' + t, '- ' + fmtWon(d.depositByType[t])); });
     var finalStdEl = document.getElementById('sum_final_standard');
     var finalCashEl = document.getElementById('sum_final_cash');
     if (finalStdEl) {
@@ -2197,10 +2211,13 @@
           '<p><span>선택 품목 합계 (현금가)</span><span id="sum_cart_cash">' + fmtWon(d.cartTotals.cash) + '</span></p>' +
           '<p><span>(-) 선택 매입 합계</span><span id="sum_purchase_checked">- ' + fmtWon(d.checkedTotalPurchaseAmount) + '</span></p>' +
           '<p><span>(-) 선택 입금 합계</span><span id="sum_deposit_checked">- ' + fmtWon(d.checkedTotalDepositAmount) + '</span></p>' +
+          DEPOSIT_TYPES.map(function (t) {
+            return '<p class="deposit-sub"><span>입금 · ' + t + '</span><span id="sum_deposit_' + t + '">- ' + fmtWon(d.depositByType[t]) + '</span></p>';
+          }).join('') +
         '</div>' +
         '<div class="summary-total">' +
-          '<p id="row_final_standard" class="' + (d.finalTotals.standard < 0 ? 'negative' : '') + '"' + (shouldHideFinalStandard(d) ? ' style="display:none;"' : '') + '><span>차감 후 정상가</span><span id="sum_final_standard">' + fmtBalance(d.finalTotals.standard) + '</span></p>' +
-          '<p class="' + (d.finalTotals.cash < 0 ? 'negative' : '') + '"><span>차감 후 현금가</span><span id="sum_final_cash">' + fmtBalance(d.finalTotals.cash) + '</span></p>' +
+          '<p id="row_final_standard" class="final-std ' + (d.finalTotals.standard < 0 ? 'negative' : '') + '"' + (shouldHideFinalStandard(d) ? ' style="display:none;"' : '') + '><span>차감 후 정상가</span><span id="sum_final_standard">' + fmtBalance(d.finalTotals.standard) + '</span></p>' +
+          '<p class="final-cash ' + (d.finalTotals.cash < 0 ? 'negative' : '') + '"><span>차감 후 현금가</span><span id="sum_final_cash">' + fmtBalance(d.finalTotals.cash) + '</span></p>' +
         '</div>' +
       '</div>' +
 
