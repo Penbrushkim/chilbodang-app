@@ -763,11 +763,17 @@
       .reduce(function (s, i) { return s + ((Number(i.amount) * 1000) || 0); }, 0);
     var checkedOtherDepositAmount = checkedTotalDepositAmount - checkedCardDepositAmount;
     var cardCashEffect = Math.round(checkedCardDepositAmount * CARD_CASH_RATE);
-    // 카드 외 항목을 뺀 현금가 잔액. 정상가는 이 잔액에 정상가비율을 곱한 뒤 카드 입금액을 그대로 차감한다.
+    var ratioNum = Number(state.standardRatio) || 0;
+    // 카드 외 항목(매입, 카드 외 입금)을 뺀 현금가 잔액
     var baseCashTotal = cartTotals.cash - checkedTotalPurchaseAmount - checkedOtherDepositAmount;
     var finalCashTotal = baseCashTotal - cardCashEffect;
+    // 카드 입금이 있으면 정상가 합계에서 카드 입금액을 그대로 차감한다(매입/카드 외 입금은 정상가비율을 곱해 차감).
+    // 카드 입금이 없으면 기존대로 현금가 잔액 × 정상가비율.
+    var finalStandardTotal = checkedCardDepositAmount > 0
+      ? cartTotals.standard - checkedCardDepositAmount - (checkedTotalPurchaseAmount + checkedOtherDepositAmount) * ratioNum
+      : baseCashTotal * ratioNum;
     var finalTotals = {
-      standard: baseCashTotal * (Number(state.standardRatio) || 0) - checkedCardDepositAmount,
+      standard: finalStandardTotal,
       cash: finalCashTotal
     };
 
@@ -1390,7 +1396,10 @@
     var otherDeposit = totalDeposit - cardDeposit;
     var baseCash = totalCash - totalPurchase - otherDeposit;
     var finalCash = baseCash - Math.round(cardDeposit * CARD_CASH_RATE);
-    var finalStandard = baseCash * (Number(state.standardRatio) || 0) - cardDeposit;
+    var ratioNum = Number(state.standardRatio) || 0;
+    var finalStandard = cardDeposit > 0
+      ? totalStandard - cardDeposit - (totalPurchase + otherDeposit) * ratioNum
+      : baseCash * ratioNum;
     // 세트에 반영된 매입/입금 품목이 하나도 없으면 차감할 것이 없으므로
     // 차감 후 금액은 세트 품목 합계와 같다(정상가는 비율 계산 없이 정상가 합계 그대로).
     if (purchaseRows.length === 0 && depositRows.length === 0) {
@@ -1592,7 +1601,8 @@
     if (!shouldHideFinalStandard(d)) {
       var ratioText = (Number(state.standardRatio) || 0).toLocaleString('ko-KR');
       if (d.checkedCardDepositAmount > 0) {
-        html += row('정상가 | 잔금', '(카드 제외 현금가 잔금 ' + fmtK(d.baseCashTotal) + ' × 정상가비율 ' + ratioText + ') - 카드 ' + fmtK(d.checkedCardDepositAmount) + ' =', d.finalTotals.standard, true);
+        var otherDeduct = d.checkedTotalPurchaseAmount + d.checkedOtherDepositAmount;
+        html += row('정상가 | 잔금', fmtK(d.cartTotals.standard) + ' - 카드 ' + fmtK(d.checkedCardDepositAmount) + (otherDeduct > 0 ? (' - (매입·입금 ' + fmtK(otherDeduct) + ' × 정상가비율 ' + ratioText + ')') : '') + ' =', d.finalTotals.standard, true);
       } else {
         html += row('정상가 | 잔금', '현금가 잔금 ' + fmtK(d.finalTotals.cash) + ' × 정상가비율 ' + ratioText + ' =', d.finalTotals.standard, true);
       }
