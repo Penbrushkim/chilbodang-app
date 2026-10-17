@@ -941,6 +941,28 @@
     copyText(parts.join('\n'), '계산 내역이 복사되었습니다.', '복사에 실패했습니다.');
   }
 
+  // 제품 가격 계산에서 체크된 제품의 순번, 함량, 중량(돈)을 복사한다. 예) "1- K18 2.3돈"
+  // 환산을 체크한 제품은 환산 함량/중량으로, 중량이 없는 품목(스톤/수공/기타)은 제외한다.
+  function handleWeightCopy() {
+    var sheet = activeSheet();
+    var lines = [];
+    (sheet.products || []).forEach(function (p, i) {
+      if (p.selection === 'none') return;
+      if (p.content === 'etc' || p.content === 'stone' || p.content === 'handicraft') return;
+      var content = p.content, weight = Number(p.weight);
+      if (p.selection === 'converted') {
+        var pr = getProductItemPrices(p);
+        if (!pr.converted) return;
+        content = pr.converted.content;
+        weight = Number(pr.converted.weight);
+      }
+      if (!isFinite(weight) || weight <= 0) return;
+      lines.push((i + 1) + '- ' + String(content).toUpperCase() + ' ' + parseFloat(weight.toFixed(3)) + '돈');
+    });
+    if (lines.length === 0) { showToast('복사할 중량이 없습니다.'); return; }
+    copyText(lines.join('\n'), '중량이 복사되었습니다.', '중량 복사에 실패했습니다.');
+  }
+
   function handleDailyCopy() {
     var sheet = activeSheet();
     var d = computeSheetDerived(sheet);
@@ -1701,7 +1723,7 @@
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></svg>' +
             '<span>공유하기</span>' +
           '</button>' +
-          '<div class="head-meta"><div>' + todayString() + '</div><div>V4.1.5</div></div>' +
+          '<div class="head-meta"><div>' + todayString() + '</div><div>V4.2.0</div></div>' +
         '</div>' +
       '</div>' +
       '<div class="tabs-scroll"><div class="tabs" id="tabsRow"></div></div>' +
@@ -2343,6 +2365,7 @@
           '<button class="btn" id="copyDetailsBtn">내역 복사</button>' +
           '<button class="btn" id="copyPurchaseBtn">매입 복사</button>' +
           '<button class="btn" id="dailyCopyBtn">일일 복사</button>' +
+          '<button class="btn" id="weightCopyBtn">중량 복사</button>' +
         '</div>' +
         '<h2>계산 내역</h2>' +
         '<div class="details-grid" id="detailsPanel"></div>' +
@@ -2370,6 +2393,7 @@
     document.getElementById('copyDetailsBtn').addEventListener('click', handleCopyDetails);
     document.getElementById('copyPurchaseBtn').addEventListener('click', handleCopyPurchaseDetails);
     document.getElementById('dailyCopyBtn').addEventListener('click', handleDailyCopy);
+    document.getElementById('weightCopyBtn').addEventListener('click', handleWeightCopy);
     var addBundleBtn = document.getElementById('addBundleBtn');
     if (addBundleBtn) addBundleBtn.addEventListener('click', addBundle);
     Array.prototype.forEach.call(root.querySelectorAll('[data-remove-bundle]'), function (el) {
