@@ -160,6 +160,37 @@
   }
   .sheet { width: 100%; max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
 
+  /* ---------- 제품 요약 (넓은 화면의 오른쪽 여백) ---------- */
+  .product-summary { display: none; }
+  @media (min-width: 1160px) {
+    /* 제품계산 화면에서만 메인을 왼쪽으로 붙이고, 남는 오른쪽 여백에 요약을 둔다 */
+    body.calc-wide .sheet { margin: 0; }
+    body.calc-wide .product-summary {
+      display: block; position: fixed; top: 20px; bottom: 20px; left: 928px; right: 14px;
+      overflow-y: auto; padding: 14px 14px 16px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow);
+    }
+  }
+  .product-summary h3 { margin: 0 0 4px; font-family: var(--font-display); font-size: 15px; font-weight: 600; }
+  .ps-unit { font-family: var(--font-body); font-size: 10.5px; font-weight: 400; color: var(--muted); }
+  .ps-empty { font-size: 12px; color: var(--muted); padding: 8px 0; }
+  .ps-item { padding: 8px 0; border-bottom: 1px solid var(--border); display: flex; gap: 6px; align-items: flex-start; }
+  .ps-item.faded { opacity: 0.45; }
+  .ps-item .item-num { margin-top: 1px; }
+  .ps-body { min-width: 0; flex: 1; }
+  .ps-line1 { font-size: 12px; line-height: 1.4; }
+  .ps-line1 .p-name { font-size: 12px; }
+  .ps-line1 .ps-cat { font-weight: 700; margin-left: 4px; }
+  .ps-line1 .ps-cat.k24 { color: var(--purity-k24); }
+  .ps-line1 .ps-cat.k18 { color: var(--purity-k18); }
+  .ps-line1 .ps-cat.k14 { color: var(--purity-k14); }
+  .ps-line1 .ps-meta { color: var(--muted); }
+  .ps-line2 { font-family: var(--font-mono); font-size: 11px; margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .ps-line2 .ps-lbl { color: var(--muted); }
+  .ps-total { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border-strong); font-family: var(--font-mono); font-size: 12.5px; }
+  .ps-total div { display: flex; justify-content: space-between; gap: 8px; margin: 2px 0; }
+
+
   /* ---------- header ---------- */
   .head {
     display: flex;
@@ -535,6 +566,7 @@
 </head>
 <body>
 <div class="sheet" id="app"></div>
+<aside class="product-summary" id="productSummary" aria-label="제품 요약"></aside>
 <div id="modalRoot"></div>
 <div class="toast" id="toast"></div>
 
@@ -1312,6 +1344,7 @@
     p.category = value;
     persistSheets();
     patchBundles();
+    renderProductSummary();
   }
   function changeProductQty(id, newQty) {
     var qty = parseInt(newQty, 10);
@@ -1719,6 +1752,51 @@
     if (state.activeTab === 'prices') renderPricesTab();
     else if (state.activeTab === 'extraction') renderExtractionTab();
     else renderCalculatorTab();
+    renderProductSummary();
+  }
+
+  // 넓은 화면(아이패드 가로 등)에서 오른쪽 여백에 보이는 제품 요약: 순번, 함량/종류, 수공, 중량, 가격을 2줄로.
+  function renderProductSummary() {
+    var el = document.getElementById('productSummary');
+    if (!el) return;
+    var on = state.activeTab === 'calculator';
+    document.body.classList.toggle('calc-wide', on);
+    if (!on) { el.innerHTML = ''; return; }
+
+    var sheet = activeSheet();
+    var products = sheet.products || [];
+    var html = '<h3>제품 요약 (제품계산' + state.activeSheetId + ') <span class="ps-unit">수공 천원</span></h3>';
+    if (products.length === 0) {
+      html += '<div class="ps-empty">추가된 제품이 없습니다.</div>';
+    } else {
+      products.forEach(function (p, i) {
+        var pr = getProductItemPrices(p);
+        var qty = p.quantity || 1;
+        var useConv = p.selection === 'converted' && pr.converted;
+        var base = useConv ? pr.converted : null;
+        var contentClass = useConv ? base.content : p.content;
+        var name = useConv ? (base.content.toUpperCase() + ' 환산') : (CONTENT_NAMES_DAILY[p.content] || CONTENT_NAMES_FULL[p.content] || String(p.content).toUpperCase());
+        var labor = useConv ? base.labor : p.labor;
+        var weight = useConv ? base.weight : p.weight;
+        var std = (useConv ? base.standard : pr.standard) * qty;
+        var cash = (useConv ? base.cash : pr.cash) * qty;
+        var hasWeight = p.content !== 'etc' && p.content !== 'stone' && p.content !== 'handicraft';
+        var nameClass = 'p-name' + (contentClass ? (' ' + contentClass) : '');
+        html += '<div class="ps-item' + (p.selection === 'none' ? ' faded' : '') + '">' +
+          '<div class="item-num' + numColorClass(p.content) + '">' + (i + 1) + '</div>' +
+          '<div class="ps-body">' +
+            '<div class="ps-line1"><span class="' + nameClass + '">' + esc(name) + '</span>' +
+              (p.category ? '<span class="ps-cat' + (contentClass ? (' ' + contentClass) : '') + '">' + esc(p.category) + '</span>' : '') +
+              '<span class="ps-meta"> · 수공 ' + Math.round(labor / 1000) + (hasWeight ? (' · ' + Number(weight).toFixed(3) + '돈') : '') + (qty > 1 ? (' · ×' + qty) : '') + '</span></div>' +
+            '<div class="ps-line2"><span class="ps-lbl">정</span> ' + Math.round(std).toLocaleString('ko-KR') + ' <span class="ps-lbl">· 현</span> ' + Math.round(cash).toLocaleString('ko-KR') + '</div>' +
+          '</div>' +
+        '</div>';
+      });
+      var d = computeSheetDerived(sheet);
+      html += '<div class="ps-total"><div><span>선택 합계 정상가</span><span>' + fmtWon(d.cartTotals.standard) + '</span></div>' +
+        '<div><span>선택 합계 현금가</span><span>' + fmtWon(d.cartTotals.cash) + '</span></div></div>';
+    }
+    el.innerHTML = html;
   }
 
   /* =========================================================
@@ -2275,6 +2353,7 @@
     renderDetailsPanel(d);
     sheet.products.forEach(function (p) { setupDrawingCanvas(p.id, p.drawing); });
 
+    renderProductSummary();
     lastCalcSheetId = state.activeSheetId;
     if (keepView) {
       var newList = document.getElementById('productList');
