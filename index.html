@@ -11,7 +11,7 @@
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Open+Sans:wght@300;400;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
 <style>
   :root {
@@ -147,111 +147,6 @@
     --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
   }
 
-  /* ---------- 컬러 톤 variant 3: Solutions Treatment Center (네이비 · 스카이블루) ---------- */
-  :root[data-variant="3"] {
-    --font-display: 'Open Sans', -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
-    --font-body: 'Open Sans', -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
-  }
-  :root[data-theme="light"][data-variant="3"] {
-    --bg: #eef3fc;
-    --surface: #ffffff;
-    --surface-2: #f5f8ff;
-    --border: #dddddd;
-    --border-strong: #cccccc;
-    --text: #333333;
-    --muted: #636363;
-    --accent: #030059;
-    --accent-strong: #030059;
-    --accent-soft: #dce8ff;
-    --accent-soft-border: #a2c6ff;
-    --return: #cf2e2e;
-    --shadow: 0 2px 4px rgba(0,0,0,0.08);
-  }
-  :root[data-theme="dark"][data-variant="3"] {
-    --bg: #080a26;
-    --surface: #10133d;
-    --surface-2: #161a4d;
-    --border: #262a66;
-    --border-strong: #343a85;
-    --text: #e8eeff;
-    --muted: #9aa6d6;
-    --accent: #7aadff;
-    --accent-strong: #a2c6ff;
-    --accent-soft: #1a2a66;
-    --accent-soft-border: #2f4a99;
-    --shadow: 0 2px 4px rgba(0,0,0,0.4);
-  }
-  :root[data-variant="3"] .card { border-radius: 5px; }
-  :root[data-variant="3"] .btn,
-  :root[data-variant="3"] .btn-del,
-  :root[data-variant="3"] .btn-clear-canvas { border-radius: 3px; }
-  :root[data-variant="3"] input, :root[data-variant="3"] select, :root[data-variant="3"] textarea { border-radius: 5px; }
-  :root[data-variant="3"] .card h2, :root[data-variant="3"] .brand h1 { font-weight: 400; }
-  :root[data-variant="3"] .tab-btn.active:hover, :root[data-variant="3"] .btn-accent:hover { background: #7aadff; border-color: #7aadff; color: #030059; opacity: 1; }
-  :root[data-theme="dark"][data-variant="3"] .btn-accent:hover { color: #080a26; }
-
-  /* ---------- 컬러 톤 variant 4: CafeBlend (커피 · 크림, 뉴모피즘) ---------- */
-  :root[data-variant="4"] {
-    --font-display: 'DM Serif Display', Georgia, 'Nanum Myeongjo', serif;
-    --font-body: 'Work Sans', -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
-  }
-  :root[data-theme="light"][data-variant="4"] {
-    --bg: #fdf6ec;
-    --surface: #ffffff;
-    --surface-2: #faf0e1;
-    --border: #e8ddd0;
-    --border-strong: #d5c9b8;
-    --text: #3e2723;
-    --muted: #6d4c41;
-    --accent: #8b5e3c;
-    --accent-strong: #6b4226;
-    --accent-soft: #f5e6d0;
-    --accent-soft-border: #d9bc9a;
-    --return: #ef4444;
-    --deposit: #059669;
-    --shadow: 6px 6px 12px #d5c9b8, -6px -6px 12px #ffffff;
-  }
-  :root[data-theme="dark"][data-variant="4"] {
-    --bg: #1e1511;
-    --surface: #2a1d17;
-    --surface-2: #33241c;
-    --border: #43332a;
-    --border-strong: #5a4538;
-    --text: #f3e6d6;
-    --muted: #b8a08c;
-    --accent: #d4a373;
-    --accent-strong: #e6be94;
-    --accent-soft: #3d2b20;
-    --accent-soft-border: #5c4232;
-    --shadow: 6px 6px 12px #120c09, -6px -6px 12px #3a2a21;
-  }
-  :root[data-variant="4"] .card { border-radius: 12px; border-color: transparent; }
-  :root[data-variant="4"] .btn,
-  :root[data-variant="4"] .btn-del { border-radius: 12px; }
-  :root[data-variant="4"] .card h2, :root[data-variant="4"] .brand h1,
-  :root[data-variant="4"] .gold-bar-item .g-type, :root[data-variant="4"] .product-summary h3,
-  :root[data-variant="4"] .modal-box h3 { font-weight: 400; }
-  :root[data-theme="light"][data-variant="4"] .btn-accent:hover, :root[data-theme="light"][data-variant="4"] .tab-btn.active:hover { background: #6b4226; border-color: #6b4226; opacity: 1; }
-  :root[data-variant="4"] .raw-price-input, :root[data-variant="4"] .batch-row input, :root[data-variant="4"] .form-grid input,
-  :root[data-variant="4"] .form-grid select, :root[data-variant="4"] textarea,
-  :root[data-variant="4"] table.data-table input:not([type="checkbox"]), :root[data-variant="4"] table.data-table select {
-    border-color: transparent; border-radius: 12px;
-  }
-  :root[data-theme="light"][data-variant="4"] .raw-price-input, :root[data-theme="light"][data-variant="4"] .batch-row input,
-  :root[data-theme="light"][data-variant="4"] .form-grid input, :root[data-theme="light"][data-variant="4"] .form-grid select,
-  :root[data-theme="light"][data-variant="4"] textarea,
-  :root[data-theme="light"][data-variant="4"] table.data-table input:not([type="checkbox"]),
-  :root[data-theme="light"][data-variant="4"] table.data-table select {
-    background: #f0e6d6; box-shadow: inset 4px 4px 8px #d5c9b8, inset -4px -4px 8px #ffffff;
-  }
-  :root[data-theme="dark"][data-variant="4"] .raw-price-input, :root[data-theme="dark"][data-variant="4"] .batch-row input,
-  :root[data-theme="dark"][data-variant="4"] .form-grid input, :root[data-theme="dark"][data-variant="4"] .form-grid select,
-  :root[data-theme="dark"][data-variant="4"] textarea,
-  :root[data-theme="dark"][data-variant="4"] table.data-table input:not([type="checkbox"]),
-  :root[data-theme="dark"][data-variant="4"] table.data-table select {
-    background: #241812; box-shadow: inset 3px 3px 6px #120c09, inset -3px -3px 6px #3a2a21;
-  }
-
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
   body {
@@ -276,6 +171,28 @@
       background: var(--surface); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow);
     }
   }
+  /* ---------- 최종 계산 요약 바 (태블릿 이상, 제품계산 화면 하단 고정) ---------- */
+  .final-bar { display: none; }
+  @media (min-width: 700px) {
+    body.calc-wide { padding-bottom: 130px; }
+    body.calc-wide .final-bar {
+      display: block; position: fixed; bottom: 10px; z-index: 50;
+      left: 50%; transform: translateX(-50%); width: min(900px, calc(100% - 28px));
+      background: var(--accent-soft); border: 1px solid var(--accent-soft-border); border-radius: 12px;
+      padding: 8px 14px; box-shadow: var(--shadow);
+    }
+  }
+  @media (min-width: 1160px) {
+    body.calc-wide .final-bar { left: 14px; transform: none; }
+  }
+  .fb-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 16px; }
+  .fb-sub { font-size: 13px; color: var(--muted); }
+  .fb-sub b { font-family: var(--font-mono); font-weight: 500; color: var(--text); font-variant-numeric: tabular-nums; }
+  .fb-final { margin-top: 3px; font-size: 15px; font-weight: 600; }
+  .fb-final b { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .fb-final .fb-std { color: var(--details); }
+  .fb-final .fb-cash { color: var(--deposit); }
+  .fb-final .negative { color: var(--return); }
   .product-summary h3 { margin: 0 0 4px; font-family: var(--font-display); font-size: 15px; font-weight: 600; }
   .ps-unit { font-family: var(--font-body); font-size: 10.5px; font-weight: 400; color: var(--muted); }
   .ps-empty { font-size: 12px; color: var(--muted); padding: 8px 0; }
@@ -672,6 +589,7 @@
 <body>
 <div class="sheet" id="app"></div>
 <aside class="product-summary" id="productSummary" aria-label="제품 요약"></aside>
+<div class="final-bar" id="finalBar" aria-label="최종 계산 요약"></div>
 <div id="modalRoot"></div>
 <div class="toast" id="toast"></div>
 
@@ -1111,7 +1029,34 @@
       finalLine = 'C' + fmtThousand(d.finalTotals.standard) + ' ▷ M' + fmtThousand(d.finalTotals.cash);
     }
 
-    var fullText = purchaseLines.concat(productLines, [finalLine]).join('\n');
+    // 체크한 매입/입금 합계와 계산식 내역
+    var extraLines = [];
+    var checkedPurchases = d.purchaseCalculations.filter(function (i) { return i.isChecked; });
+    if (checkedPurchases.length > 0) {
+      extraLines.push('매입합계 ▷ ' + fmtThousand(d.checkedTotalPurchaseAmount) +
+        (checkedPurchases.length > 1 ? (' (' + checkedPurchases.map(function (i) { return fmtThousand(i.totalPurchasePrice); }).join('+') + ')') : ''));
+    }
+    if (d.checkedTotalDepositAmount > 0) {
+      var depositParts = DEPOSIT_TYPES.filter(function (t) { return d.depositByType[t] > 0; }).map(function (t) { return t + ' ' + fmtThousand(d.depositByType[t]); });
+      extraLines.push('입금합계 ▷ ' + fmtThousand(d.checkedTotalDepositAmount) + (depositParts.length > 0 ? (' (' + depositParts.join(' + ') + ')') : ''));
+    }
+    if (d.checkedTotalPurchaseAmount > 0 || d.checkedTotalDepositAmount > 0) {
+      var ratioNum = Number(state.standardRatio) || 0;
+      var cardAmt = d.checkedCardDepositAmount;
+      var nonCard = d.checkedTotalPurchaseAmount + d.checkedOtherDepositAmount;
+      var mFormula, cFormula;
+      if (cardAmt > 0) {
+        mFormula = 'M: ' + fmtThousand(d.cartTotals.cash) + (nonCard > 0 ? ('-' + fmtThousand(nonCard)) : '') + '-' + fmtThousand(cardAmt) + '×' + CARD_CASH_RATE + ' = ' + fmtThousand(d.finalTotals.cash);
+        cFormula = 'C: ' + fmtThousand(d.cartTotals.standard) + '-' + fmtThousand(cardAmt) + (nonCard > 0 ? ('-' + fmtThousand(nonCard) + '×' + ratioNum) : '') + ' = ' + fmtThousand(d.finalTotals.standard);
+      } else {
+        var deductText = [d.checkedTotalPurchaseAmount, d.checkedTotalDepositAmount].filter(function (v) { return v > 0; }).map(function (v) { return '-' + fmtThousand(v); }).join('');
+        mFormula = 'M: ' + fmtThousand(d.cartTotals.cash) + deductText + ' = ' + fmtThousand(d.finalTotals.cash);
+        cFormula = 'C: (' + fmtThousand(d.cartTotals.cash) + deductText + ')×' + ratioNum + ' = ' + fmtThousand(d.finalTotals.standard);
+      }
+      extraLines.push(shouldHideFinalStandard(d) ? mFormula : (cFormula + '\n' + mFormula));
+    }
+
+    var fullText = purchaseLines.concat(productLines, extraLines, [finalLine]).join('\n');
     if (!fullText) { showToast('복사할 내역이 없습니다.'); return; }
     copyText(fullText, '일일 내역이 복사되었습니다.', '일일 내역 복사에 실패했습니다.');
   }
@@ -1736,6 +1681,7 @@
 
     renderDetailsPanel(d);
     patchBundles();
+    renderFinalBar();
   }
 
   function patchBundles() {
@@ -1792,7 +1738,7 @@
     var root = document.documentElement;
     if (state.theme === 'dark') root.setAttribute('data-theme', 'dark');
     else root.setAttribute('data-theme', 'light');
-    root.setAttribute('data-variant', COLOR_VARIANTS[state.colorVariant] ? state.colorVariant : '1');
+    root.setAttribute('data-variant', state.colorVariant === '2' ? '2' : '1');
     var btn = document.getElementById('themeToggleBtn');
     if (btn) btn.textContent = state.theme === 'light' ? '🌙' : '☀️';
   }
@@ -1801,14 +1747,10 @@
     persistTheme();
     applyTheme();
   }
-  var COLOR_VARIANTS = { '1': '기본 (골드)', '2': '블루·그린', '3': '솔루션즈 센터 (네이비·스카이블루)', '4': '카페블렌드 (커피·크림)' };
   function cycleColorVariant() {
-    var order = ['1', '2', '3', '4'];
-    var idx = order.indexOf(COLOR_VARIANTS[state.colorVariant] ? state.colorVariant : '1');
-    state.colorVariant = order[(idx + 1) % order.length];
+    state.colorVariant = state.colorVariant === '2' ? '1' : '2';
     persistColorVariant();
     applyTheme();
-    showToast('컬러: ' + COLOR_VARIANTS[state.colorVariant]);
   }
 
   /* =========================================================
@@ -1832,7 +1774,7 @@
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></svg>' +
             '<span>공유하기</span>' +
           '</button>' +
-          '<div class="head-meta"><div>' + todayString() + '</div><div>V4.2.1</div></div>' +
+          '<div class="head-meta"><div>' + todayString() + '</div><div>V4.3.0</div></div>' +
         '</div>' +
       '</div>' +
       '<div class="tabs-scroll"><div class="tabs" id="tabsRow"></div></div>' +
@@ -1886,12 +1828,34 @@
     renderProductSummary();
   }
 
+  // 화면 아래에 고정되는 최종 계산 요약(2줄): 합계/매입/입금, 차감 후 정상가/현금가
+  function renderFinalBar() {
+    var el = document.getElementById('finalBar');
+    if (!el) return;
+    if (state.activeTab !== 'calculator') { el.innerHTML = ''; return; }
+    var d = computeSheetDerived(activeSheet());
+    var chip = function (label, value) { return '<span>' + label + ' <b>' + value + '</b></span>'; };
+    var std = d.finalTotals.standard, cash = d.finalTotals.cash;
+    el.innerHTML =
+      '<div class="fb-line fb-sub">' +
+        chip('품목 합계 정상가', fmtWon(d.cartTotals.standard)) +
+        chip('현금가', fmtWon(d.cartTotals.cash)) +
+        chip('매입', '- ' + fmtWon(d.checkedTotalPurchaseAmount)) +
+        chip('입금', '- ' + fmtWon(d.checkedTotalDepositAmount)) +
+      '</div>' +
+      '<div class="fb-line fb-final">' +
+        (shouldHideFinalStandard(d) ? '' : '<span class="fb-std' + (std < 0 ? ' negative' : '') + '">차감 후 정상가 <b>' + fmtBalance(std) + '</b></span>') +
+        '<span class="fb-cash' + (cash < 0 ? ' negative' : '') + '">차감 후 현금가 <b>' + fmtBalance(cash) + '</b></span>' +
+      '</div>';
+  }
+
   // 넓은 화면(아이패드 가로 등)에서 오른쪽 여백에 보이는 제품 요약: 순번, 함량/종류, 수공, 중량, 가격을 2줄로.
   function renderProductSummary() {
     var el = document.getElementById('productSummary');
     if (!el) return;
     var on = state.activeTab === 'calculator';
     document.body.classList.toggle('calc-wide', on);
+    renderFinalBar();
     if (!on) { el.innerHTML = ''; return; }
 
     var sheet = activeSheet();
