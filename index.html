@@ -11,7 +11,7 @@
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Open+Sans:wght@300;400;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
 
 <style>
   :root {
@@ -145,6 +145,111 @@
     --accent-soft: #1c3527;
     --accent-soft-border: #2e4f3b;
     --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+  }
+
+  /* ---------- 컬러 톤 variant 3: Solutions Treatment Center (네이비 · 스카이블루) ---------- */
+  :root[data-variant="3"] {
+    --font-display: 'Open Sans', -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+    --font-body: 'Open Sans', -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  }
+  :root[data-theme="light"][data-variant="3"] {
+    --bg: #eef3fc;
+    --surface: #ffffff;
+    --surface-2: #f5f8ff;
+    --border: #dddddd;
+    --border-strong: #cccccc;
+    --text: #333333;
+    --muted: #636363;
+    --accent: #030059;
+    --accent-strong: #030059;
+    --accent-soft: #dce8ff;
+    --accent-soft-border: #a2c6ff;
+    --return: #cf2e2e;
+    --shadow: 0 2px 4px rgba(0,0,0,0.08);
+  }
+  :root[data-theme="dark"][data-variant="3"] {
+    --bg: #080a26;
+    --surface: #10133d;
+    --surface-2: #161a4d;
+    --border: #262a66;
+    --border-strong: #343a85;
+    --text: #e8eeff;
+    --muted: #9aa6d6;
+    --accent: #7aadff;
+    --accent-strong: #a2c6ff;
+    --accent-soft: #1a2a66;
+    --accent-soft-border: #2f4a99;
+    --shadow: 0 2px 4px rgba(0,0,0,0.4);
+  }
+  :root[data-variant="3"] .card { border-radius: 5px; }
+  :root[data-variant="3"] .btn,
+  :root[data-variant="3"] .btn-del,
+  :root[data-variant="3"] .btn-clear-canvas { border-radius: 3px; }
+  :root[data-variant="3"] input, :root[data-variant="3"] select, :root[data-variant="3"] textarea { border-radius: 5px; }
+  :root[data-variant="3"] .card h2, :root[data-variant="3"] .brand h1 { font-weight: 400; }
+  :root[data-variant="3"] .tab-btn.active:hover, :root[data-variant="3"] .btn-accent:hover { background: #7aadff; border-color: #7aadff; color: #030059; opacity: 1; }
+  :root[data-theme="dark"][data-variant="3"] .btn-accent:hover { color: #080a26; }
+
+  /* ---------- 컬러 톤 variant 4: CafeBlend (커피 · 크림, 뉴모피즘) ---------- */
+  :root[data-variant="4"] {
+    --font-display: 'DM Serif Display', Georgia, 'Nanum Myeongjo', serif;
+    --font-body: 'Work Sans', -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  }
+  :root[data-theme="light"][data-variant="4"] {
+    --bg: #fdf6ec;
+    --surface: #ffffff;
+    --surface-2: #faf0e1;
+    --border: #e8ddd0;
+    --border-strong: #d5c9b8;
+    --text: #3e2723;
+    --muted: #6d4c41;
+    --accent: #8b5e3c;
+    --accent-strong: #6b4226;
+    --accent-soft: #f5e6d0;
+    --accent-soft-border: #d9bc9a;
+    --return: #ef4444;
+    --deposit: #059669;
+    --shadow: 6px 6px 12px #d5c9b8, -6px -6px 12px #ffffff;
+  }
+  :root[data-theme="dark"][data-variant="4"] {
+    --bg: #1e1511;
+    --surface: #2a1d17;
+    --surface-2: #33241c;
+    --border: #43332a;
+    --border-strong: #5a4538;
+    --text: #f3e6d6;
+    --muted: #b8a08c;
+    --accent: #d4a373;
+    --accent-strong: #e6be94;
+    --accent-soft: #3d2b20;
+    --accent-soft-border: #5c4232;
+    --shadow: 6px 6px 12px #120c09, -6px -6px 12px #3a2a21;
+  }
+  :root[data-variant="4"] .card { border-radius: 12px; border-color: transparent; }
+  :root[data-variant="4"] .btn,
+  :root[data-variant="4"] .btn-del { border-radius: 12px; }
+  :root[data-variant="4"] .card h2, :root[data-variant="4"] .brand h1,
+  :root[data-variant="4"] .gold-bar-item .g-type, :root[data-variant="4"] .product-summary h3,
+  :root[data-variant="4"] .modal-box h3 { font-weight: 400; }
+  :root[data-theme="light"][data-variant="4"] .btn-accent:hover, :root[data-theme="light"][data-variant="4"] .tab-btn.active:hover { background: #6b4226; border-color: #6b4226; opacity: 1; }
+  :root[data-variant="4"] .raw-price-input, :root[data-variant="4"] .batch-row input, :root[data-variant="4"] .form-grid input,
+  :root[data-variant="4"] .form-grid select, :root[data-variant="4"] textarea,
+  :root[data-variant="4"] table.data-table input:not([type="checkbox"]), :root[data-variant="4"] table.data-table select {
+    border-color: transparent; border-radius: 12px;
+  }
+  :root[data-theme="light"][data-variant="4"] .raw-price-input, :root[data-theme="light"][data-variant="4"] .batch-row input,
+  :root[data-theme="light"][data-variant="4"] .form-grid input, :root[data-theme="light"][data-variant="4"] .form-grid select,
+  :root[data-theme="light"][data-variant="4"] textarea,
+  :root[data-theme="light"][data-variant="4"] table.data-table input:not([type="checkbox"]),
+  :root[data-theme="light"][data-variant="4"] table.data-table select {
+    background: #f0e6d6; box-shadow: inset 4px 4px 8px #d5c9b8, inset -4px -4px 8px #ffffff;
+  }
+  :root[data-theme="dark"][data-variant="4"] .raw-price-input, :root[data-theme="dark"][data-variant="4"] .batch-row input,
+  :root[data-theme="dark"][data-variant="4"] .form-grid input, :root[data-theme="dark"][data-variant="4"] .form-grid select,
+  :root[data-theme="dark"][data-variant="4"] textarea,
+  :root[data-theme="dark"][data-variant="4"] table.data-table input:not([type="checkbox"]),
+  :root[data-theme="dark"][data-variant="4"] table.data-table select {
+    background: #241812; box-shadow: inset 3px 3px 6px #120c09, inset -3px -3px 6px #3a2a21;
   }
 
   * { box-sizing: border-box; }
@@ -1738,7 +1843,7 @@
     var root = document.documentElement;
     if (state.theme === 'dark') root.setAttribute('data-theme', 'dark');
     else root.setAttribute('data-theme', 'light');
-    root.setAttribute('data-variant', state.colorVariant === '2' ? '2' : '1');
+    root.setAttribute('data-variant', COLOR_VARIANTS[state.colorVariant] ? state.colorVariant : '1');
     var btn = document.getElementById('themeToggleBtn');
     if (btn) btn.textContent = state.theme === 'light' ? '🌙' : '☀️';
   }
@@ -1747,10 +1852,14 @@
     persistTheme();
     applyTheme();
   }
+  var COLOR_VARIANTS = { '1': '기본 (골드)', '2': '블루·그린', '3': '솔루션즈 센터 (네이비·스카이블루)', '4': '카페블렌드 (커피·크림)' };
   function cycleColorVariant() {
-    state.colorVariant = state.colorVariant === '2' ? '1' : '2';
+    var order = ['1', '2', '3', '4'];
+    var idx = order.indexOf(COLOR_VARIANTS[state.colorVariant] ? state.colorVariant : '1');
+    state.colorVariant = order[(idx + 1) % order.length];
     persistColorVariant();
     applyTheme();
+    showToast('컬러: ' + COLOR_VARIANTS[state.colorVariant]);
   }
 
   /* =========================================================
