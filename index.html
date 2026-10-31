@@ -305,6 +305,7 @@
   .ps-item.faded { opacity: 0.45; }
   .ps-item .item-num { margin-top: 1px; }
   .ps-body { min-width: 0; flex: 1; }
+  .ps-check { width: 20px; height: 20px; flex: none; margin: 1px 0 0; cursor: pointer; accent-color: var(--accent); }
   .ps-line1 { font-size: 12px; line-height: 1.4; }
   .ps-line1 .p-name { font-size: 12px; }
   .ps-line1 .ps-cat { font-weight: 700; margin-left: 4px; }
@@ -527,6 +528,7 @@
   .item-num.k24 { color: var(--purity-k24); border-color: var(--purity-k24); font-weight: 700; font-size: 12px; }
   .item-num.k18 { color: var(--purity-k18); border-color: var(--purity-k18); font-weight: 700; font-size: 12px; }
   .item-num.k14 { color: var(--purity-k14); border-color: var(--purity-k14); font-weight: 700; font-size: 12px; }
+  .model-input { width: 150px; padding: 5px 6px; font-size: 13px; }
   .category-select { width: 150px; padding: 5px 6px; font-size: 13px; }
   .bundle-row-cat { font-size: 70%; font-weight: 700; margin-left: 8px; }
   .bundle-row-cat.k24 { color: var(--purity-k24); }
@@ -758,7 +760,7 @@
   // 카드 입금: 현금가에서는 입금액의 85%만 차감하고, 정상가에서는 입금액 전액을 차감한다.
   var CARD_CASH_RATE = 0.85;
   var DEPOSIT_TYPES = ['현금', '카드', '반품', '기타'];
-  var PRODUCT_CATEGORIES = ['반지', '팔찌', '목걸이', '귀걸이', '발찌', '스톤', '기타'];
+  var PRODUCT_CATEGORIES = ['반지', '팔찌', '목걸이', '메달', '귀걸이', '발찌', '스톤', '기타'];
   var CONTENT_NAMES_FULL = { k24: 'K24 제품', k18: 'K18 제품', k14: 'K14 제품', stone: '스톤', handicraft: '수공', etc: '기타 품목' };
   var CONTENT_NAMES_SHORT = { k24: 'K24', k18: 'K18', k14: 'K14', dental: '치금', silver: '실버', platinum: '백금' };
   var CONTENT_NAMES_DAILY = { k24: 'K24', k18: 'K18', k14: 'K14', stone: '스톤', etc: '기타' };
@@ -1071,6 +1073,27 @@
 
   // 제품 가격 계산에서 체크된 제품의 순번, 함량, 중량(돈)을 복사한다. 예) "1- K18 2.3돈"
   // 환산을 체크한 제품은 환산 함량/중량으로, 중량이 없는 품목(스톤/수공/기타)은 제외한다.
+  // 제품 가격 계산에서 체크된 함량의 금시세를 복사한다. 예) "K24 🅒800 🅜700 / K18 🅒700 🅜590" (천원 단위, 🅒=정상가 🅜=현금가)
+  function handleRateCopy() {
+    var sheet = activeSheet();
+    var seen = {};
+    (sheet.products || []).forEach(function (p) {
+      if (p.selection === 'none') return;
+      var content = p.content;
+      if (p.selection === 'converted') {
+        var pr = getProductItemPrices(p);
+        if (!pr.converted) return;
+        content = pr.converted.content;
+      }
+      if (content === 'k24' || content === 'k18' || content === 'k14') seen[content] = true;
+    });
+    var parts = ['k24', 'k18', 'k14'].filter(function (k) { return seen[k]; }).map(function (k) {
+      return k.toUpperCase() + ' 🅒' + fmtThousand(state.prices[k].standard) + ' 🅜' + fmtThousand(state.prices[k].cash);
+    });
+    if (parts.length === 0) { showToast('복사할 시세가 없습니다.'); return; }
+    copyText(parts.join(' / '), '시세가 복사되었습니다.', '시세 복사에 실패했습니다.');
+  }
+
   function handleWeightCopy() {
     var sheet = activeSheet();
     var lines = [];
@@ -1486,7 +1509,7 @@
 
     var newProduct = {
       id: uid(), content: content, labor: labor, weight: weight,
-      selection: 'original', quantity: 1, drawing: null, category: '',
+      selection: 'original', quantity: 1, drawing: null, category: '', model: '',
       k18FindingWeight: k18Weight, k18FindingIncluded: input.k18FindingChecked && k18Weight > 0
     };
     activeSheet().products.push(newProduct);
@@ -1513,6 +1536,12 @@
     });
     persistSheets();
     renderCalculatorTab();
+  }
+  function setProductModel(id, value) {
+    var p = activeSheet().products.filter(function (x) { return x.id === id; })[0];
+    if (!p) return;
+    p.model = value;
+    persistSheets();
   }
   function setProductCategory(id, value) {
     var sheet = activeSheet();
@@ -1883,7 +1912,7 @@
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></svg>' +
             '<span>공유하기</span>' +
           '</button>' +
-          '<div class="head-meta"><div>' + todayString() + '</div><div>V4.3.0</div></div>' +
+          '<div class="head-meta"><div>' + todayString() + '</div><div>V4.4.0</div></div>' +
         '</div>' +
       '</div>' +
       '<div class="tabs-scroll"><div class="tabs" id="tabsRow"></div></div>' +
@@ -1994,6 +2023,7 @@
               '<span class="ps-meta"> · 수공 ' + Math.round(labor / 1000) + (hasWeight ? (' · ' + Number(weight).toFixed(3) + '돈') : '') + (qty > 1 ? (' · ×' + qty) : '') + '</span></div>' +
             '<div class="ps-line2"><span class="ps-lbl">정</span> ' + Math.round(std).toLocaleString('ko-KR') + ' <span class="ps-lbl">· 현</span> ' + Math.round(cash).toLocaleString('ko-KR') + '</div>' +
           '</div>' +
+          '<input type="checkbox" class="ps-check" data-ps-check="' + p.id + '"' + (p.selection !== 'none' ? ' checked' : '') + ' aria-label="제품 선택" />' +
         '</div>';
       });
       var d = computeSheetDerived(sheet);
@@ -2001,6 +2031,19 @@
         '<div><span>선택 합계 현금가</span><span>' + fmtWon(d.cartTotals.cash) + '</span></div></div>';
     }
     el.innerHTML = html;
+    Array.prototype.forEach.call(el.querySelectorAll('[data-ps-check]'), function (cb) {
+      cb.addEventListener('change', function () { toggleProductFromSummary(Number(cb.dataset.psCheck)); });
+    });
+  }
+
+  // 제품 요약의 체크박스: 제품 가격 계산의 선택(체크) 상태와 같은 값을 켜고 끈다.
+  function toggleProductFromSummary(id) {
+    var sheet = activeSheet();
+    sheet.products = sheet.products.map(function (p) {
+      return p.id === id ? Object.assign({}, p, { selection: p.selection === 'none' ? 'original' : 'none' }) : p;
+    });
+    persistSheets();
+    renderCalculatorTab();
   }
 
   /* =========================================================
@@ -2381,6 +2424,7 @@
         '<div class="draw-wrap">' +
           '<canvas class="draw-canvas" width="150" height="70" data-canvas-for="' + p.id + '"></canvas>' +
           categorySelectHtml(p) +
+          '<input type="text" class="model-input" data-model-for="' + p.id + '" placeholder="모델명" maxlength="60" value="' + esc(p.model || '') + '" aria-label="모델명" />' +
         '</div>' +
         '<div class="draw-side">' +
           '<button type="button" class="btn-clear-canvas" data-canvas-clear="' + p.id + '">지우기</button>' +
@@ -2548,6 +2592,7 @@
           '<button class="btn" id="copyPurchaseBtn">매입 복사</button>' +
           '<button class="btn" id="dailyCopyBtn">일일 복사</button>' +
           '<button class="btn" id="weightCopyBtn">중량 복사</button>' +
+          '<button class="btn" id="rateCopyBtn">시세 복사</button>' +
         '</div>' +
         '<h2>계산 내역</h2>' +
         '<div class="details-grid" id="detailsPanel"></div>' +
@@ -2576,6 +2621,7 @@
     document.getElementById('copyPurchaseBtn').addEventListener('click', handleCopyPurchaseDetails);
     document.getElementById('dailyCopyBtn').addEventListener('click', handleDailyCopy);
     document.getElementById('weightCopyBtn').addEventListener('click', handleWeightCopy);
+    document.getElementById('rateCopyBtn').addEventListener('click', handleRateCopy);
     var addBundleBtn = document.getElementById('addBundleBtn');
     if (addBundleBtn) addBundleBtn.addEventListener('click', addBundle);
     Array.prototype.forEach.call(root.querySelectorAll('[data-remove-bundle]'), function (el) {
@@ -2607,6 +2653,15 @@
     });
     Array.prototype.forEach.call(root.querySelectorAll('[data-qty-input]'), function (el) {
       el.addEventListener('change', function () { changeProductQty(Number(el.dataset.qtyInput), el.value); });
+    });
+    Array.prototype.forEach.call(root.querySelectorAll('[data-model-for]'), function (el) {
+      el.addEventListener('input', function () { setProductModel(Number(el.dataset.modelFor), el.value); });
+      // 글자를 입력/선택할 때 항목이 드래그되지 않도록 입력 중에는 드래그를 잠시 끈다
+      var li = el.closest('.product-item');
+      if (li) {
+        el.addEventListener('focus', function () { li.setAttribute('draggable', 'false'); });
+        el.addEventListener('blur', function () { li.setAttribute('draggable', 'true'); });
+      }
     });
     Array.prototype.forEach.call(root.querySelectorAll('[data-category-for]'), function (el) {
       el.addEventListener('change', function () { setProductCategory(Number(el.dataset.categoryFor), el.value); });
