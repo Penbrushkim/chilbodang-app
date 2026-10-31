@@ -1073,7 +1073,7 @@
 
   // 제품 가격 계산에서 체크된 제품의 순번, 함량, 중량(돈)을 복사한다. 예) "1- K18 2.3돈"
   // 환산을 체크한 제품은 환산 함량/중량으로, 중량이 없는 품목(스톤/수공/기타)은 제외한다.
-  // 제품 가격 계산에서 체크된 함량의 금시세를 복사한다. 예) "K24 🅒800 🅜700 / K18 🅒700 🅜590" (천원 단위, 🅒=정상가 🅜=현금가)
+  // 제품 가격 계산에서 체크된 함량의 금시세를 복사한다. 예) 함량별로 한 줄씩 "K24 🅒800 🅜700" (천원 단위, 🅒=정상가 🅜=현금가)
   function handleRateCopy() {
     var sheet = activeSheet();
     var seen = {};
@@ -1091,7 +1091,7 @@
       return k.toUpperCase() + ' 🅒' + fmtThousand(state.prices[k].standard) + ' 🅜' + fmtThousand(state.prices[k].cash);
     });
     if (parts.length === 0) { showToast('복사할 시세가 없습니다.'); return; }
-    copyText(parts.join(' / '), '시세가 복사되었습니다.', '시세 복사에 실패했습니다.');
+    copyText(parts.join('\n'), '시세가 복사되었습니다.', '시세 복사에 실패했습니다.');
   }
 
   function handleWeightCopy() {
