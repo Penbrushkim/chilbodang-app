@@ -252,6 +252,102 @@
     background: #241812; box-shadow: inset 3px 3px 6px #120c09, inset -3px -3px 6px #3a2a21;
   }
 
+  /* ---------- 컬러 톤 variant 5: Glassy Dashboard (글라스모피즘 · 모던 미니멀) ---------- */
+  :root[data-theme="light"][data-variant="5"] {
+    --bg: #e8edfb;
+    --surface: rgba(255,255,255,0.58);
+    --surface-2: rgba(255,255,255,0.5);
+    --border: rgba(255,255,255,0.75);
+    --border-strong: rgba(110,120,170,0.32);
+    --text: #1a2040;
+    --muted: #5a6285;
+    --accent: #6a5cff;
+    --accent-strong: #4a3de0;
+    --accent-soft: rgba(106,92,255,0.14);
+    --accent-soft-border: rgba(106,92,255,0.34);
+    --return: #d4435b;
+    --return-soft: rgba(212,67,91,0.13);
+    --return-soft-border: rgba(212,67,91,0.34);
+    --deposit: #0e9a78;
+    --deposit-soft: rgba(14,154,120,0.13);
+    --deposit-soft-border: rgba(14,154,120,0.34);
+    --set: #8a4fe0;
+    --set-soft: rgba(138,79,224,0.13);
+    --set-soft-border: rgba(138,79,224,0.34);
+    --purchase: #d4447e;
+    --purchase-soft: rgba(212,68,126,0.12);
+    --purchase-soft-border: rgba(212,68,126,0.32);
+    --details: #2d7fd2;
+    --details-soft: rgba(45,127,210,0.13);
+    --details-soft-border: rgba(45,127,210,0.34);
+    --shadow: 0 8px 32px rgba(40,50,140,0.14);
+  }
+  :root[data-theme="dark"][data-variant="5"] {
+    --bg: #0a0d1f;
+    --surface: rgba(255,255,255,0.07);
+    --surface-2: rgba(255,255,255,0.06);
+    --border: rgba(255,255,255,0.16);
+    --border-strong: rgba(255,255,255,0.24);
+    --text: #eef0ff;
+    --muted: #a6acce;
+    --accent: #8b7bff;
+    --accent-strong: #b3a8ff;
+    --accent-soft: rgba(139,123,255,0.16);
+    --accent-soft-border: rgba(139,123,255,0.38);
+    --return: #ff7a8e;
+    --return-soft: rgba(255,122,142,0.14);
+    --return-soft-border: rgba(255,122,142,0.36);
+    --deposit: #5fe0bd;
+    --deposit-soft: rgba(95,224,189,0.12);
+    --deposit-soft-border: rgba(95,224,189,0.32);
+    --set: #b99cff;
+    --set-soft: rgba(185,156,255,0.14);
+    --set-soft-border: rgba(185,156,255,0.36);
+    --purchase: #ff8fb8;
+    --purchase-soft: rgba(255,143,184,0.12);
+    --purchase-soft-border: rgba(255,143,184,0.32);
+    --details: #7fc0ff;
+    --details-soft: rgba(127,192,255,0.12);
+    --details-soft-border: rgba(127,192,255,0.32);
+    --shadow: 0 10px 36px rgba(0,0,0,0.45);
+  }
+  :root[data-theme="light"][data-variant="5"] body {
+    background: radial-gradient(60% 50% at 8% 6%, rgba(130,150,255,0.45), transparent 70%),
+                radial-gradient(55% 45% at 95% 18%, rgba(255,160,220,0.38), transparent 70%),
+                radial-gradient(60% 50% at 70% 100%, rgba(120,225,205,0.40), transparent 70%),
+                linear-gradient(135deg, #e6ecfd, #f1e9fb 55%, #e2f4ee);
+    background-attachment: fixed;
+  }
+  :root[data-theme="dark"][data-variant="5"] body {
+    background: radial-gradient(55% 45% at 6% 4%, rgba(100,90,255,0.42), transparent 70%),
+                radial-gradient(50% 40% at 96% 20%, rgba(255,90,170,0.26), transparent 70%),
+                radial-gradient(60% 50% at 65% 100%, rgba(40,200,190,0.28), transparent 70%),
+                linear-gradient(135deg, #090b1c, #12102c 55%, #081a24);
+    background-attachment: fixed;
+  }
+  /* 유리 질감: 반투명 + 블러 + 얇은 흰 테두리, 큼직한 모서리 */
+  :root[data-variant="5"] .card, :root[data-variant="5"] .gold-bar-item, :root[data-variant="5"] .product-summary,
+  :root[data-variant="5"] .final-bar, :root[data-variant="5"] .modal-box, :root[data-variant="5"] .tab-btn,
+  :root[data-variant="5"] .icon-btn, :root[data-variant="5"] .share-btn {
+    -webkit-backdrop-filter: blur(18px) saturate(160%); backdrop-filter: blur(18px) saturate(160%);
+  }
+  /* 하단 고정 바는 뒤의 글자가 비치지 않도록 더 불투명하게 */
+  :root[data-theme="light"][data-variant="5"] .final-bar { background: rgba(240,238,255,0.88); }
+  :root[data-theme="dark"][data-variant="5"] .final-bar { background: rgba(24,22,56,0.86); }
+  :root[data-variant="5"] .card { border-radius: 22px; }
+  :root[data-variant="5"] .gold-bar-item, :root[data-variant="5"] .product-summary, :root[data-variant="5"] .final-bar { border-radius: 18px; }
+  :root[data-variant="5"] .product-item { border-radius: 16px; background: var(--surface-2); }
+  :root[data-variant="5"] .btn, :root[data-variant="5"] .btn-del { border-radius: 12px; background: var(--surface-2); }
+  :root[data-variant="5"] .btn-accent, :root[data-variant="5"] .tab-btn.active {
+    background: linear-gradient(135deg, var(--accent), #4fb4ff); border-color: transparent; color: #fff; box-shadow: 0 4px 16px rgba(106,92,255,0.35);
+  }
+  :root[data-variant="5"] .btn-accent:hover, :root[data-variant="5"] .tab-btn.active:hover { opacity: 0.92; color: #fff; }
+  :root[data-variant="5"] input, :root[data-variant="5"] select, :root[data-variant="5"] textarea { border-radius: 12px; background: var(--surface-2); }
+  :root[data-variant="5"] .brand h1, :root[data-variant="5"] .card h2 { font-weight: 600; letter-spacing: -0.01em; }
+  :root[data-variant="5"] .head { border-bottom: 1px solid var(--border-strong); }
+  :root[data-variant="5"] .tab-btn { background: var(--surface); }
+  :root[data-variant="5"] .tab-btn.has-data:not(.active) { background: var(--accent-soft); }
+
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
   body {
@@ -804,7 +900,7 @@
 
   var state = {
     theme: safeGet('chilbo_theme') || 'light',
-    colorVariant: safeGet('chilbo_colorVariant') || '1',
+    colorVariant: safeGet('chilbo_colorVariant') || '5',
     prices: Object.assign({}, initialPrices, loadJSON('chilbo_prices', {})),
     sheets: (function () {
       var saved = loadJSON('chilbo_sheets', null);
@@ -1086,6 +1182,8 @@
         content = pr.converted.content;
       }
       if (content === 'k24' || content === 'k18' || content === 'k14') seen[content] = true;
+      // K24 제품에 K18 장식이 체크되어 있으면 K18 시세도 함께 복사한다.
+      if (p.content === 'k24' && p.k18FindingIncluded && Number(p.k18FindingWeight) > 0) seen.k18 = true;
     });
     var parts = ['k24', 'k18', 'k14'].filter(function (k) { return seen[k]; }).map(function (k) {
       return k.toUpperCase() + ' 🅒' + fmtThousand(state.prices[k].standard) + ' 🅜' + fmtThousand(state.prices[k].cash);
@@ -1881,9 +1979,9 @@
     persistTheme();
     applyTheme();
   }
-  var COLOR_VARIANTS = { '1': '기본 (골드)', '2': '블루·그린', '3': '솔루션즈 센터 (네이비·스카이블루)', '4': '카페블렌드 (커피·크림)' };
+  var COLOR_VARIANTS = { '1': '기본 (골드)', '2': '블루·그린', '3': '솔루션즈 센터 (네이비·스카이블루)', '4': '카페블렌드 (커피·크림)', '5': '글래시 (글라스모피즘)' };
   function cycleColorVariant() {
-    var order = ['1', '2', '3', '4'];
+    var order = ['1', '2', '3', '4', '5'];
     var idx = order.indexOf(COLOR_VARIANTS[state.colorVariant] ? state.colorVariant : '1');
     state.colorVariant = order[(idx + 1) % order.length];
     persistColorVariant();
@@ -1912,7 +2010,7 @@
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></svg>' +
             '<span>공유하기</span>' +
           '</button>' +
-          '<div class="head-meta"><div>' + todayString() + '</div><div>V4.4.1</div></div>' +
+          '<div class="head-meta"><div>' + todayString() + '</div><div>V4.5.0</div></div>' +
         '</div>' +
       '</div>' +
       '<div class="tabs-scroll"><div class="tabs" id="tabsRow"></div></div>' +
