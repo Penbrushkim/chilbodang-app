@@ -595,6 +595,7 @@
   /* ---------- product add form ---------- */
   .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); column-gap: 18px; row-gap: 14px; align-items: end; margin-bottom: 14px; }
   .form-grid .full-btn { grid-column: 1 / -1; }
+  .form-grid input:not([type="checkbox"]), .form-grid select { width: 100%; min-width: 0; }
   .checkbox-row { display: flex; align-items: center; gap: 8px; }
   .checkbox-row input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; accent-color: var(--accent); }
   .checkbox-row label { margin: 0; font-weight: 700; cursor: pointer; }
@@ -920,6 +921,7 @@
     activeTab: 'prices',
     activeSheetId: 1,
     standardRatio: safeGet('chilbo_standardRatio') || '1.17',
+    productFormContent: safeGet('chilbo_lastContent') || 'k18',
     dropboxUrl: safeGet('chilbo_dropboxUrl') || '',
     dropboxAuto: safeGet('chilbo_dropboxAuto') !== '0',
     dropboxLastStamp: safeGet('chilbo_dropboxStamp') || '',
@@ -2430,7 +2432,7 @@
 
   function productFormHtml() {
     return '<div class="form-grid" id="productFormGrid">' +
-      '<div><label>함량</label><select id="pf_content" class="content-select">' + contentOptionsHtml('k18') + '</select></div>' +
+      '<div><label>함량</label><select id="pf_content" class="content-select">' + contentOptionsHtml(state.productFormContent || 'k18') + '</select></div>' +
       '<div><label>수공 (천원)</label><input type="number" inputmode="numeric" pattern="[0-9]*" placeholder="예: 50" id="pf_labor" /></div>' +
       '<div id="pf_weight_wrap"><label>중량 (돈)</label><input type="number" step="0.001" inputmode="decimal" placeholder="예: 1.5" id="pf_weight" /></div>' +
       '<div id="pf_weightg_wrap"><label>중량 (g)</label><input type="number" step="0.001" inputmode="decimal" placeholder="예: 5.625" id="pf_weightG" /></div>' +
@@ -2462,7 +2464,11 @@
       k18wWrap.style.display = v === 'k24' ? 'block' : 'none';
       contentSel.className = 'content-select purity-' + v;
     }
-    contentSel.addEventListener('change', refreshContentUI);
+    contentSel.addEventListener('change', function () {
+      refreshContentUI();
+      state.productFormContent = contentSel.value;
+      safeSet('chilbo_lastContent', state.productFormContent);
+    });
     refreshContentUI();
 
     weightEl.addEventListener('input', function () { weightGEl.value = donToGramStr(weightEl.value); });
