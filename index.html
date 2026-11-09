@@ -1649,6 +1649,57 @@
     };
   }
 
+  // ---------- 삭제/지우기: 부드럽게 사라진 뒤 실제로 지운다 ----------
+  function prefersReducedMotion() {
+    return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  }
+  // el: 사라질 요소, done: 애니메이션이 끝난 뒤 실행할 실제 삭제 함수
+  // collapse: true면 높이도 함께 줄어들어 아래 항목들이 부드럽게 올라온다
+  function animateRemove(el, done, collapse) {
+    if (!el || !el.animate || prefersReducedMotion()) { done(); return; }
+    if (el.dataset.removing) return;
+    el.dataset.removing = '1';
+    el.style.pointerEvents = 'none';
+    var ease = 'cubic-bezier(0.4, 0, 0.2, 1)', dur = 380, finished = false;
+    var finish = function () { if (finished) return; finished = true; done(); };
+    var cs = getComputedStyle(el);
+    if (cs.display === 'table-row') {
+      Array.prototype.forEach.call(el.children, function (td) {
+        td.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateX(48px)' }], { duration: dur, easing: ease, fill: 'forwards' });
+      });
+      setTimeout(finish, dur + 20);
+      return;
+    }
+    var from = { opacity: 1, transform: 'translateX(0)' };
+    var to = { opacity: 0, transform: 'translateX(48px)' };
+    if (collapse) {
+      var h = el.offsetHeight;
+      el.style.overflow = 'hidden';
+      el.style.flexShrink = '0'; // overflow:hidden 이면 flex 항목이 갑자기 줄어들 수 있어 막는다
+      from.maxHeight = h + 'px'; to.maxHeight = '0px';
+      ['marginTop', 'marginBottom', 'paddingTop', 'paddingBottom'].forEach(function (p) { from[p] = cs[p]; to[p] = '0px'; });
+    }
+    var anim = el.animate([from, to], { duration: dur, easing: ease, fill: 'forwards' });
+    anim.onfinish = finish;
+    setTimeout(finish, dur + 60);
+  }
+  // 그림판 지우기: 그림이 번지듯 옅어지다가 사라진다
+  function animateClearCanvas(productId) {
+    var canvas = document.querySelector('[data-canvas-for="' + productId + '"]');
+    if (!canvas || !canvas.animate || prefersReducedMotion()) { clearDrawingCanvas(productId); return; }
+    var anim = canvas.animate([{ opacity: 1, filter: 'blur(0px)' }, { opacity: 0, filter: 'blur(4px)' }], { duration: 340, easing: 'ease-out', fill: 'forwards' });
+    anim.onfinish = function () {
+      clearDrawingCanvas(productId);
+      anim.cancel();
+    };
+  }
+  function wireBundleRemove(el) {
+    el.addEventListener('click', function () {
+      var id = Number(el.dataset.removeBundle);
+      animateRemove(el.closest('.bundle-card'), function () { removeBundle(id); }, false);
+    });
+  }
+
   function animateEnterLeft(el) {
     if (!el) return;
     el.classList.remove('enter-left');
@@ -2001,9 +2052,7 @@
     var grid = document.querySelector('.bundle-grid');
     if (!grid || !sheet.bundles || sheet.bundles.length === 0) return;
     grid.innerHTML = sheet.bundles.map(function (b, i) { return bundleCardHtml(sheet, b, i); }).join('');
-    Array.prototype.forEach.call(grid.querySelectorAll('[data-remove-bundle]'), function (el) {
-      el.addEventListener('click', function () { removeBundle(Number(el.dataset.removeBundle)); });
-    });
+    Array.prototype.forEach.call(grid.querySelectorAll('[data-remove-bundle]'), wireBundleRemove);
   }
 
   function renderDetailsPanel(d) {
@@ -2829,9 +2878,7 @@
     document.getElementById('rateCopyBtn').addEventListener('click', handleRateCopy);
     var addBundleBtn = document.getElementById('addBundleBtn');
     if (addBundleBtn) addBundleBtn.addEventListener('click', addBundle);
-    Array.prototype.forEach.call(root.querySelectorAll('[data-remove-bundle]'), function (el) {
-      el.addEventListener('click', function () { removeBundle(Number(el.dataset.removeBundle)); });
-    });
+    Array.prototype.forEach.call(root.querySelectorAll('[data-remove-bundle]'), wireBundleRemove);
 
     Array.prototype.forEach.call(root.querySelectorAll('[data-select-orig]'), function (el) {
       el.addEventListener('change', function () { toggleProductSelection(Number(el.dataset.selectOrig), 'original'); });
@@ -2872,10 +2919,13 @@
       el.addEventListener('change', function () { setProductCategory(Number(el.dataset.categoryFor), el.value); });
     });
     Array.prototype.forEach.call(root.querySelectorAll('[data-remove-product]'), function (el) {
-      el.addEventListener('click', function () { removeProduct(Number(el.dataset.removeProduct)); });
+      el.addEventListener('click', function () {
+        var id = Number(el.dataset.removeProduct);
+        animateRemove(el.closest('.product-item'), function () { removeProduct(id); }, true);
+      });
     });
     Array.prototype.forEach.call(root.querySelectorAll('[data-canvas-clear]'), function (el) {
-      el.addEventListener('click', function () { clearDrawingCanvas(Number(el.dataset.canvasClear)); });
+      el.addEventListener('click', function () { animateClearCanvas(Number(el.dataset.canvasClear)); });
     });
 
     Array.prototype.forEach.call(root.querySelectorAll('.product-item'), function (li) {
@@ -2903,7 +2953,10 @@
       el.addEventListener('change', function () { togglePurchaseCheck(Number(el.dataset.purchaseCheck)); });
     });
     Array.prototype.forEach.call(root.querySelectorAll('[data-remove-purchase]'), function (el) {
-      el.addEventListener('click', function () { removePurchaseItem(Number(el.dataset.removePurchase)); });
+      el.addEventListener('click', function () {
+        var id = Number(el.dataset.removePurchase);
+        animateRemove(el.closest('tr'), function () { removePurchaseItem(id); }, true);
+      });
     });
 
     Array.prototype.forEach.call(root.querySelectorAll('[data-deposit-amount]'), function (el) {
@@ -2916,7 +2969,10 @@
       el.addEventListener('change', function () { toggleDepositCheck(Number(el.dataset.depositCheck)); });
     });
     Array.prototype.forEach.call(root.querySelectorAll('[data-remove-deposit]'), function (el) {
-      el.addEventListener('click', function () { removeDepositItem(Number(el.dataset.removeDeposit)); });
+      el.addEventListener('click', function () {
+        var id = Number(el.dataset.removeDeposit);
+        animateRemove(el.closest('tr'), function () { removeDepositItem(id); }, true);
+      });
     });
   }
 
