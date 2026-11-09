@@ -463,6 +463,62 @@
   .share-btn:hover { border-color: var(--accent); color: var(--accent-strong); }
   .share-btn svg { width: 14px; height: 14px; flex: none; }
 
+
+  /* ---------- 동적 움직임 (애니메이션) ---------- */
+  @keyframes slideInRight { from { opacity: 0; transform: translateX(-34px); } to { opacity: 1; transform: none; } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  @keyframes tabPop { 0% { transform: scale(1.15); } 55% { transform: scale(0.97); } 100% { transform: scale(1); } }
+  @keyframes valueFlash { 0% { background-color: rgba(255, 205, 80, 0.6); } 100% { background-color: rgba(255, 205, 80, 0); } }
+  @keyframes overlayIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes modalIn { from { opacity: 0; transform: translateY(14px) scale(0.94); } to { opacity: 1; transform: none; } }
+  @keyframes toastIn { from { transform: translateX(-50%) translateY(18px) scale(0.96); } to { transform: translateX(-50%) translateY(0) scale(1); } }
+
+  /* 탭 버튼: 누르면 15% 커졌다가, 선택되면 통통 튀며 제자리로 */
+  .tabs-scroll { padding: 8px 10px 10px; margin: -6px -10px -8px; }
+  .tab-btn { transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease; -webkit-tap-highlight-color: transparent; }
+  .tab-btn:active { transform: scale(1.15); }
+  .tab-btn.pop { animation: tabPop 0.42s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+  /* 추가 버튼: 새로 생긴 항목이 왼쪽에서 오른쪽으로 들어온다 */
+  .enter-left { animation: slideInRight 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+  tr.enter-left > td { animation: slideInRight 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+
+  /* 탭 전환: 카드들이 아래에서 위로 차례로 나타난다 */
+  .tab-enter > * { animation: fadeUp 0.42s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+  .tab-enter > *:nth-child(2) { animation-delay: 0.04s; }
+  .tab-enter > *:nth-child(3) { animation-delay: 0.08s; }
+  .tab-enter > *:nth-child(4) { animation-delay: 0.12s; }
+  .tab-enter > *:nth-child(5) { animation-delay: 0.16s; }
+  .tab-enter > *:nth-child(n+6) { animation-delay: 0.2s; }
+
+  /* 버튼을 누르면 살짝 눌리는 느낌 */
+  .btn, .btn-del, .icon-btn, .share-btn, .btn-clear-canvas, .stepper-h button, .qty-stepper button {
+    transition: transform 0.14s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn:active, .btn-del:active, .icon-btn:active, .share-btn:active, .btn-clear-canvas:active { transform: scale(0.94); }
+  .stepper-h button:active, .qty-stepper button:active { transform: scale(1.3); }
+
+  /* 값이 바뀌면 잠깐 반짝 */
+  .val-flash { animation: valueFlash 0.8s ease-out; border-radius: 6px; }
+
+  /* 팝업/토스트 */
+  .modal-overlay { animation: overlayIn 0.2s ease; }
+  .modal-box { animation: modalIn 0.32s cubic-bezier(0.34, 1.4, 0.64, 1); }
+  .toast.show { animation: toastIn 0.3s cubic-bezier(0.34, 1.4, 0.64, 1); }
+
+  /* 컬러/테마를 바꿀 때 부드럽게 */
+  body, .card, .gold-bar-item, .product-item, .head { transition: background-color 0.35s ease, color 0.35s ease, border-color 0.35s ease; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .enter-left, tr.enter-left > td, .tab-enter > *, .tab-btn.pop, .val-flash, .modal-overlay, .modal-box, .toast.show { animation: none !important; }
+    .tab-btn, .btn, .btn-del, .icon-btn, .share-btn, .stepper-h button, .qty-stepper button { transition: none !important; }
+    .tab-btn:active, .btn:active, .btn-del:active, .icon-btn:active, .share-btn:active { transform: none; }
+  }
+
+  /* 글래시 컬러: 계산이 들어있는 제품계산 탭은 글자에 하늘색 밑줄 */
+  :root[data-variant="5"] .tab-btn.filled { text-decoration: underline; text-decoration-color: #38bdf8; text-decoration-thickness: 2px; text-underline-offset: 5px; }
+
   /* ---------- tabs ---------- */
   .tabs-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; }
   .tabs { display: flex; gap: 6px; width: max-content; }
@@ -933,7 +989,7 @@
   };
 
   function persistPrices() { saveJSON('chilbo_prices', state.prices); }
-  function persistSheets() { saveJSON('chilbo_sheets', state.sheets); }
+  function persistSheets() { saveJSON('chilbo_sheets', state.sheets); if (typeof updateTabFilledState === 'function') updateTabFilledState(); }
   function persistTheme() { safeSet('chilbo_theme', state.theme); }
   function persistColorVariant() { safeSet('chilbo_colorVariant', state.colorVariant); }
   function persistStandardRatio() { safeSet('chilbo_standardRatio', state.standardRatio); }
@@ -1593,6 +1649,18 @@
     };
   }
 
+  function animateEnterLeft(el) {
+    if (!el) return;
+    el.classList.remove('enter-left');
+    void el.offsetWidth;
+    el.classList.add('enter-left');
+    setTimeout(function () { el.classList.remove('enter-left'); }, 700);
+  }
+  function lastOf(selector) {
+    var all = document.querySelectorAll(selector);
+    return all.length ? all[all.length - 1] : null;
+  }
+
   function addProduct() {
     var input = readProductForm();
     var labor = Number(input.labor) * 1000;
@@ -1617,6 +1685,7 @@
     renderCalculatorTab();
     var list = document.getElementById('productList');
     if (list) list.scrollTop = list.scrollHeight;
+    animateEnterLeft(lastOf('#productList > .product-item'));
   }
 
   function toggleProductSelection(id, type) {
@@ -1688,6 +1757,7 @@
     sheet.bundles.push({ id: uid(), items: items, purchaseIds: purchaseIds, depositIds: depositIds });
     persistSheets();
     renderCalculatorTab();
+    animateEnterLeft(lastOf('.bundle-grid > .bundle-card'));
   }
   function removeBundle(id) {
     var sheet = activeSheet();
@@ -1794,6 +1864,7 @@
     activeSheet().purchaseItems.push({ id: uid(), content: 'k24', weightG: '', weightDon: '', deductionDon: '', isChecked: true });
     persistSheets();
     renderCalculatorTab();
+    animateEnterLeft(lastOf('#purchaseTable tbody tr'));
   }
   function onPurchaseFieldInput(id, field, value) {
     var sheet = activeSheet();
@@ -1833,6 +1904,7 @@
     activeSheet().depositItems.push({ id: uid(), type: '현금', amount: '', isChecked: true });
     persistSheets();
     renderCalculatorTab();
+    animateEnterLeft(lastOf('#depositTable tbody tr'));
   }
   function onDepositFieldInput(id, field, value) {
     var sheet = activeSheet();
@@ -1895,7 +1967,13 @@
     var sheet = activeSheet();
     var d = computeSheetDerived(sheet);
 
-    var setText = function (id, text) { var el = document.getElementById(id); if (el) el.textContent = text; };
+    var flash = function (el) {
+      el.classList.remove('val-flash');
+      void el.offsetWidth;
+      el.classList.add('val-flash');
+      setTimeout(function () { el.classList.remove('val-flash'); }, 850);
+    };
+    var setText = function (id, text) { var el = document.getElementById(id); if (el && el.textContent !== text) { el.textContent = text; flash(el); } };
     setText('sum_cart_standard', fmtWon(d.cartTotals.standard));
     setText('sum_cart_cash', fmtWon(d.cartTotals.cash));
     setText('sum_purchase_checked', '- ' + fmtWon(d.checkedTotalPurchaseAmount));
@@ -1904,11 +1982,11 @@
     var finalStdEl = document.getElementById('sum_final_standard');
     var finalCashEl = document.getElementById('sum_final_cash');
     if (finalStdEl) {
-      finalStdEl.textContent = fmtBalance(d.finalTotals.standard);
+      setText('sum_final_standard', fmtBalance(d.finalTotals.standard));
       finalStdEl.parentElement.classList.toggle('negative', d.finalTotals.standard < 0);
       finalStdEl.parentElement.style.display = shouldHideFinalStandard(d) ? 'none' : '';
     }
-    if (finalCashEl) { finalCashEl.textContent = fmtBalance(d.finalTotals.cash); finalCashEl.parentElement.classList.toggle('negative', d.finalTotals.cash < 0); }
+    if (finalCashEl) { setText('sum_final_cash', fmtBalance(d.finalTotals.cash)); finalCashEl.parentElement.classList.toggle('negative', d.finalTotals.cash < 0); }
 
     setText('purchase_total_checked', fmtWon(d.checkedTotalPurchaseAmount));
     setText('purchase_total_all', '(전체 매입 총계: ' + fmtWon(d.totalPurchaseAmount) + ')');
@@ -2012,7 +2090,7 @@
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></svg>' +
             '<span>공유하기</span>' +
           '</button>' +
-          '<div class="head-meta"><div>' + todayString() + '</div><div>V4.5.0</div></div>' +
+          '<div class="head-meta"><div>' + todayString() + '</div><div>V4.5.1</div></div>' +
         '</div>' +
       '</div>' +
       '<div class="tabs-scroll"><div class="tabs" id="tabsRow"></div></div>' +
@@ -2026,16 +2104,34 @@
     renderActiveTab();
   }
 
+  function playTabEnter() {
+    var root = document.getElementById('captureRoot');
+    if (!root) return;
+    root.classList.remove('tab-enter');
+    void root.offsetWidth;
+    root.classList.add('tab-enter');
+    setTimeout(function () { root.classList.remove('tab-enter'); }, 700);
+  }
+  function updateTabFilledState() {
+    Array.prototype.forEach.call(document.querySelectorAll('#tabsRow [data-sheet]'), function (btn) {
+      var sheet = getSheet(Number(btn.getAttribute('data-sheet')));
+      var hasData = isSheetActive(sheet);
+      btn.classList.toggle('filled', hasData);
+      btn.classList.toggle('has-data', hasData && !btn.classList.contains('active'));
+    });
+  }
   function setActiveTab(tab) {
     state.activeTab = tab;
     renderTabs();
     renderActiveTab();
+    playTabEnter();
   }
   function setActiveSheet(id) {
     state.activeTab = 'calculator';
     state.activeSheetId = id;
     renderTabs();
     renderActiveTab();
+    playTabEnter();
   }
 
   function renderTabs() {
@@ -2048,9 +2144,14 @@
       var sheet = getSheet(i);
       var active = state.activeTab === 'calculator' && state.activeSheetId === i;
       var hasData = isSheetActive(sheet);
-      html += '<button class="tab-btn ' + (active ? 'active' : '') + (hasData && !active ? ' has-data' : '') + '" data-sheet="' + i + '">제품계산' + i + '</button>';
+      html += '<button class="tab-btn ' + (active ? 'active' : '') + (hasData && !active ? ' has-data' : '') + (hasData ? ' filled' : '') + '" data-sheet="' + i + '">제품계산' + i + '</button>';
     }
     row.innerHTML = html;
+    var activeBtn = row.querySelector('.tab-btn.active');
+    if (activeBtn) {
+      activeBtn.classList.add('pop');
+      setTimeout(function () { activeBtn.classList.remove('pop'); }, 480);
+    }
     Array.prototype.forEach.call(row.querySelectorAll('[data-tab]'), function (btn) {
       btn.addEventListener('click', function () { setActiveTab(btn.getAttribute('data-tab')); });
     });
@@ -2944,6 +3045,9 @@
      Init
   ========================================================= */
   renderShell();
+
+  // iOS Safari는 touchstart 리스너가 있어야 :active(누름 효과)가 동작한다.
+  document.addEventListener('touchstart', function () {}, { passive: true });
 
   // 원본(React) 앱은 useEffect가 첫 렌더 때도 실행되어, 앱을 열 때마다 시세/시트를
   // 저장소에 다시 써두었다. 같은 동작을 맞춰 준다.
