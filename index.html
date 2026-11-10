@@ -1228,6 +1228,42 @@
   // 제품 가격 계산에서 체크된 제품의 순번, 함량, 중량(돈)을 복사한다. 예) "1- K18 2.3돈"
   // 환산을 체크한 제품은 환산 함량/중량으로, 중량이 없는 품목(스톤/수공/기타)은 제외한다.
   // 제품 가격 계산에서 체크된 함량의 금시세를 복사한다. 예) 함량별로 한 줄씩 "K24 🅒800 🅜700" (천원 단위, 🅒=정상가 🅜=현금가)
+  // 약식 내역: 체크된 K24/K18/K14 제품의 중량과 가격을 짧게 복사한다.
+  //  K18, K14:  "중량(돈) (중량(g))" / 정상가 / 현금가 / ========== / 환산 중량 / 정상가 / 현금가
+  //  K24:       "중량(돈) + K18 중량(돈)" / 정상가 / 현금가
+  function handleBriefCopy() {
+    var sheet = activeSheet();
+    var trim = function (n) { return String(parseFloat(Number(n).toFixed(3))); };
+    var wtText = function (don) { return trim(don) + '돈 (' + trim(don * DON_TO_GRAM) + 'g)'; };
+    var blocks = [];
+    (sheet.products || []).forEach(function (p) {
+      if (p.selection === 'none') return;
+      if (p.content !== 'k24' && p.content !== 'k18' && p.content !== 'k14') return;
+      var weight = Number(p.weight);
+      if (!isFinite(weight) || weight <= 0) return;
+      var qty = p.quantity || 1;
+      var pr = getProductItemPrices(p);
+      var qtyText = qty > 1 ? (' ×' + qty) : '';
+      var priceLines = function (std, cash) { return ['정상가 ' + fmtWon(std * qty), '현금가 ' + fmtWon(cash * qty)]; };
+      var lines;
+      if (p.content === 'k24') {
+        var finding = p.k18FindingIncluded ? (Number(p.k18FindingWeight) || 0) : 0;
+        var head = trim(weight) + '돈' + (finding > 0 ? (' + K18 ' + trim(finding) + '돈') : '') + qtyText;
+        lines = [head].concat(priceLines(pr.standard, pr.cash));
+      } else {
+        lines = [wtText(weight) + qtyText].concat(priceLines(pr.standard, pr.cash));
+        if (pr.converted) {
+          lines.push('==========');
+          lines.push(wtText(pr.converted.weight) + qtyText);
+          lines = lines.concat(priceLines(pr.converted.standard, pr.converted.cash));
+        }
+      }
+      blocks.push(lines.join('\n'));
+    });
+    if (blocks.length === 0) { showToast('복사할 제품이 없습니다.'); return; }
+    copyText(blocks.join('\n\n'), '약식 내역이 복사되었습니다.', '약식 내역 복사에 실패했습니다.');
+  }
+
   function handleRateCopy() {
     var sheet = activeSheet();
     var seen = {};
@@ -2139,7 +2175,7 @@
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></svg>' +
             '<span>공유하기</span>' +
           '</button>' +
-          '<div class="head-meta"><div>' + todayString() + '</div><div>V4.5.2</div></div>' +
+          '<div class="head-meta"><div>' + todayString() + '</div><div>V4.5.3</div></div>' +
         '</div>' +
       '</div>' +
       '<div class="tabs-scroll"><div class="tabs" id="tabsRow"></div></div>' +
@@ -2847,6 +2883,7 @@
           '<button class="btn" id="dailyCopyBtn">일일 복사</button>' +
           '<button class="btn" id="weightCopyBtn">중량 복사</button>' +
           '<button class="btn" id="rateCopyBtn">시세 복사</button>' +
+          '<button class="btn" id="briefCopyBtn">약식 내역</button>' +
         '</div>' +
         '<h2>계산 내역</h2>' +
         '<div class="details-grid" id="detailsPanel"></div>' +
@@ -2876,6 +2913,7 @@
     document.getElementById('dailyCopyBtn').addEventListener('click', handleDailyCopy);
     document.getElementById('weightCopyBtn').addEventListener('click', handleWeightCopy);
     document.getElementById('rateCopyBtn').addEventListener('click', handleRateCopy);
+    document.getElementById('briefCopyBtn').addEventListener('click', handleBriefCopy);
     var addBundleBtn = document.getElementById('addBundleBtn');
     if (addBundleBtn) addBundleBtn.addEventListener('click', addBundle);
     Array.prototype.forEach.call(root.querySelectorAll('[data-remove-bundle]'), wireBundleRemove);
